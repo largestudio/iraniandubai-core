@@ -31,6 +31,48 @@ final class BlogRenderer {
 	private string $ajax_url = '';
 
 	/**
+	 * Request-local normalized attribute cache.
+	 *
+	 * @var array<string,array<string,mixed>>
+	 */
+	private array $normalized_atts_cache = array();
+
+	/**
+	 * Request-local post excerpt cache.
+	 *
+	 * @var array<string,string>
+	 */
+	private array $excerpt_cache = array();
+
+	/**
+	 * Request-local post read time cache.
+	 *
+	 * @var array<int,int>
+	 */
+	private array $read_time_cache = array();
+
+	/**
+	 * Request-local post category cache.
+	 *
+	 * @var array<int,\WP_Term|null>
+	 */
+	private array $post_category_cache = array();
+
+	/**
+	 * Request-local category lookup cache.
+	 *
+	 * @var array<string,\WP_Term|null>
+	 */
+	private array $category_lookup_cache = array();
+
+	/**
+	 * Request-local filter term cache.
+	 *
+	 * @var array<string,\WP_Term[]>
+	 */
+	private array $filter_categories_cache = array();
+
+	/**
 	 * Render latest blog posts.
 	 *
 	 * @param array<string,mixed> $atts Shortcode attributes.
@@ -125,13 +167,21 @@ final class BlogRenderer {
 	 * @return string
 	 */
 	public function get_excerpt( int $post_id, int $length ): string {
+		$cache_key = $post_id . ':' . max( 1, $length );
+
+		if ( isset( $this->excerpt_cache[ $cache_key ] ) ) {
+			return $this->excerpt_cache[ $cache_key ];
+		}
+
 		$excerpt = get_the_excerpt( $post_id );
 
 		if ( '' === $excerpt ) {
 			$excerpt = wp_strip_all_tags( (string) get_post_field( 'post_content', $post_id ) );
 		}
 
-		return wp_trim_words( $excerpt, max( 1, $length ), '...' );
+		$this->excerpt_cache[ $cache_key ] = wp_trim_words( $excerpt, max( 1, $length ), '...' );
+
+		return $this->excerpt_cache[ $cache_key ];
 	}
 
 	/**
@@ -142,12 +192,18 @@ final class BlogRenderer {
 	 * @return int
 	 */
 	public function get_read_time( int $post_id ): int {
+		if ( isset( $this->read_time_cache[ $post_id ] ) ) {
+			return $this->read_time_cache[ $post_id ];
+		}
+
 		$content = wp_strip_all_tags( (string) get_post_field( 'post_content', $post_id ) );
 		$matches = array();
 
 		preg_match_all( '/[\p{L}\p{N}]+/u', $content, $matches );
 
-		return max( 1, (int) ceil( count( $matches[0] ) / 200 ) );
+		$this->read_time_cache[ $post_id ] = max( 1, (int) ceil( count( $matches[0] ) / 200 ) );
+
+		return $this->read_time_cache[ $post_id ];
 	}
 
 	/**
@@ -158,36 +214,51 @@ final class BlogRenderer {
 	 * @return \WP_Term|null
 	 */
 	public function get_category( int $post_id ): ?\WP_Term {
+		if ( array_key_exists( $post_id, $this->post_category_cache ) ) {
+			return $this->post_category_cache[ $post_id ];
+		}
+
 		$categories = get_the_category( $post_id );
 
 		if ( empty( $categories ) || ! isset( $categories[0] ) || ! $categories[0] instanceof \WP_Term ) {
+			$this->post_category_cache[ $post_id ] = null;
+
 			return null;
 		}
 
-		return $categories[0];
+		$this->post_category_cache[ $post_id ] = $categories[0];
+
+		return $this->post_category_cache[ $post_id ];
 	}
 
 	/**
 	 * Get post thumbnail markup.
 	 *
-	 * @param int $post_id Post ID.
+	 * @param int  $post_id     Post ID.
+	 * @param bool $is_priority Whether the image is the first visible blog image.
 	 *
 	 * @return string
 	 */
-	public function get_image( int $post_id ): string {
+	public function get_image( int $post_id, bool $is_priority = false ): string {
 		if ( ! has_post_thumbnail( $post_id ) ) {
 			return '<span class="idb-blog-card__image idb-blog-card__image--placeholder" aria-hidden="true"></span>';
+		}
+
+		$attributes = array(
+			'class'    => 'idb-blog-card__image',
+			'loading'  => $is_priority ? 'eager' : 'lazy',
+			'decoding' => 'async',
+			'sizes'    => '(min-width: 1024px) 50vw, 100vw',
+		);
+
+		if ( $is_priority ) {
+			$attributes['fetchpriority'] = 'high';
 		}
 
 		return (string) get_the_post_thumbnail(
 			$post_id,
 			'large',
-			array(
-				'class'    => 'idb-blog-card__image',
-				'loading'  => 'lazy',
-				'decoding' => 'async',
-				'sizes'    => '(min-width: 1024px) 50vw, 100vw',
-			)
+			$attributes
 		);
 	}
 
@@ -200,9 +271,16 @@ final class BlogRenderer {
 	 */
 	public function get_filter_categories( array $atts ): array {
 		$normalized = $this->normalize_atts( $atts );
-		$args       = array(
-			'hide_empty' => true,
-			'taxonomy'   => 'category',
+		$cache_key  = $normalized['category'];
+
+		if ( isset( $this->filter_categories_cache[ $cache_key ] ) ) {
+			return $this->filter_categories_cache[ $cache_key ];
+		}
+
+		$args = array(
+			'hide_empty'             => true,
+			'taxonomy'               => 'category',
+			'update_term_meta_cache' => false,
 		);
 
 		if ( '' !== $normalized['category'] ) {
@@ -215,7 +293,9 @@ final class BlogRenderer {
 
 		$terms = get_terms( $args );
 
-		return is_array( $terms ) ? $terms : array();
+		$this->filter_categories_cache[ $cache_key ] = is_array( $terms ) ? $terms : array();
+
+		return $this->filter_categories_cache[ $cache_key ];
 	}
 
 	/**
@@ -319,6 +399,7 @@ final class BlogRenderer {
 				'order'          => $normalized['order'],
 				'orderby'        => $normalized['orderby'],
 				'category_name'  => '' !== $requested_category ? $requested_category : $normalized['category'],
+				'no_found_rows'  => ! $normalized['pagination'],
 			)
 		);
 	}
@@ -358,6 +439,12 @@ final class BlogRenderer {
 	 * @return array{category:string,columns:int,excerpt:int,order:string,orderby:string,pagination:bool,posts:int}
 	 */
 	private function normalize_atts( array $atts ): array {
+		$cache_key = md5( (string) wp_json_encode( $atts ) );
+
+		if ( isset( $this->normalized_atts_cache[ $cache_key ] ) ) {
+			return $this->normalized_atts_cache[ $cache_key ];
+		}
+
 		$options = Defaults::settings();
 		$posts   = isset( $atts['posts'] ) && '' !== $atts['posts'] ? absint( $atts['posts'] ) : absint( $options['posts_per_page'] );
 
@@ -390,7 +477,7 @@ final class BlogRenderer {
 			$category = $term->slug;
 		}
 
-		return array(
+		$this->normalized_atts_cache[ $cache_key ] = array(
 			'category'   => $category,
 			'columns'    => Defaults::clamp_int( $columns, Defaults::COLUMNS_MIN, Defaults::COLUMNS_MAX ),
 			'excerpt'    => max( 0, min( 80, $excerpt ) ),
@@ -399,6 +486,8 @@ final class BlogRenderer {
 			'pagination' => $this->string_to_bool( $atts['pagination'] ?? 'yes' ),
 			'posts'      => Defaults::clamp_int( $posts, Defaults::POSTS_PER_PAGE_MIN, Defaults::POSTS_PER_PAGE_MAX ),
 		);
+
+		return $this->normalized_atts_cache[ $cache_key ];
 	}
 
 	/**
@@ -439,9 +528,15 @@ final class BlogRenderer {
 			return null;
 		}
 
+		if ( array_key_exists( $value, $this->category_lookup_cache ) ) {
+			return $this->category_lookup_cache[ $value ];
+		}
+
 		$term = is_numeric( $value ) ? get_category( absint( $value ) ) : get_category_by_slug( $value );
 
-		return $term instanceof \WP_Term ? $term : null;
+		$this->category_lookup_cache[ $value ] = $term instanceof \WP_Term ? $term : null;
+
+		return $this->category_lookup_cache[ $value ];
 	}
 
 	/**

@@ -33,6 +33,7 @@ final class Query {
 			'paged'          => 1,
 			'post_type'      => 'post',
 			'post_status'    => 'publish',
+			'no_found_rows'  => false,
 		);
 
 		$args = wp_parse_args( $args, $defaults );
@@ -61,6 +62,7 @@ final class Query {
 			'order'               => $order,
 			'paged'               => max( 1, absint( $args['paged'] ) ),
 			'ignore_sticky_posts' => true,
+			'no_found_rows'       => (bool) $args['no_found_rows'],
 		);
 
 		if ( ! empty( $args['category_name'] ) ) {

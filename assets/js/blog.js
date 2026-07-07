@@ -2,6 +2,7 @@
 	'use strict';
 
 	var config = window.idbCoreBlog || {};
+	var attributesCache = new WeakMap();
 
 	if (!config.ajaxUrl || !config.action || !config.nonce) {
 		return;
@@ -20,7 +21,12 @@
 
 		blog.classList.toggle('idb-blog--is-loading', isLoading);
 		blog.setAttribute('aria-busy', isLoading ? 'true' : 'false');
-		blog.dataset.idbBlogLoading = isLoading ? '1' : '';
+
+		if (isLoading) {
+			blog.dataset.idbBlogLoading = '1';
+		} else {
+			delete blog.dataset.idbBlogLoading;
+		}
 
 		links.forEach(function (link) {
 			link.setAttribute('aria-disabled', isLoading ? 'true' : 'false');
@@ -28,11 +34,21 @@
 	}
 
 	function getAttributes(blog) {
-		try {
-			return JSON.parse(blog.getAttribute('data-idb-blog-atts') || '{}');
-		} catch (error) {
-			return {};
+		if (attributesCache.has(blog)) {
+			return attributesCache.get(blog);
 		}
+
+		var attributes = {};
+
+		try {
+			attributes = JSON.parse(blog.getAttribute('data-idb-blog-atts') || '{}');
+		} catch (error) {
+			attributes = {};
+		}
+
+		attributesCache.set(blog, attributes);
+
+		return attributes;
 	}
 
 	function replaceBlog(blog, html) {
