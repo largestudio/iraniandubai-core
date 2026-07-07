@@ -1,0 +1,14 @@
+{
+    "name": "largestudio/iraniandubai-core",
+    "description": "IranianDubai Core Plugin",
+    "type": "wordpress-plugin",
+    "license": "proprietary",
+    "require": {
+        "php": ">=8.2"
+    },
+    "autoload": {
+        "psr-4": {
+            "IDB\\": "src/"
+        }
+    }
+}
