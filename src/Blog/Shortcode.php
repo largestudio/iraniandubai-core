@@ -53,14 +53,14 @@ final class Shortcode implements ModuleInterface {
 		$atts = shortcode_atts(
 			array(
 				'category'       => '',
-				'columns'        => 2,
-				'excerpt'        => 24,
+				'columns'        => '',
+				'excerpt'        => '',
 				'order'          => 'DESC',
 				'orderby'        => 'date',
 				'pagination'     => 'yes',
 				'posts'          => '',
 				'paged'          => '',
-				'posts_per_page' => 6,
+				'posts_per_page' => '',
 			),
 			is_array( $atts ) ? $atts : array(),
 			'idb_blog'

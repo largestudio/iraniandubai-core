@@ -8,6 +8,8 @@
 
 namespace IDB\Admin;
 
+use IDB\Blog\Defaults;
+
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
@@ -88,34 +90,11 @@ final class Settings {
 			'idb_nonce'
 		);
 
-		$options = $this->options();
-				$options['posts_per_page'] = max(
-			1,
-			min(
-				48,
-				absint(
-					$_POST['posts_per_page'] ?? 6
-				)
-			)
-		);
-
-		$options['excerpt_length'] = max(
-			5,
-			min(
-				100,
-				absint(
-					$_POST['excerpt_length'] ?? 24
-				)
-			)
-		);
-
-		$options['columns'] = max(
-			1,
-			min(
-				4,
-				absint(
-					$_POST['columns'] ?? 2
-				)
+		$options = Defaults::sanitize(
+			array(
+				'posts_per_page' => $_POST['posts_per_page'] ?? Defaults::SETTINGS['posts_per_page'],
+				'excerpt_length' => $_POST['excerpt_length'] ?? Defaults::SETTINGS['excerpt_length'],
+				'columns'        => $_POST['columns'] ?? Defaults::SETTINGS['columns'],
 			)
 		);
 
@@ -148,26 +127,7 @@ final class Settings {
 	 */
 	private function options(): array {
 
-		$options = get_option(
-			$this->option_name,
-			array()
-		);
-
-		if ( ! is_array( $options ) ) {
-			$options = array();
-		}
-
-		return wp_parse_args(
-
-			$options,
-
-			array(
-				'posts_per_page' => 6,
-				'excerpt_length' => 24,
-				'columns'        => 2,
-			)
-
-		);
+		return Defaults::settings();
 
 	}
 
