@@ -19,6 +19,16 @@ if ( ! defined( 'ABSPATH' ) ) {
  */
 final class BlogRenderer {
 	private const CATEGORY_QUERY_VAR = 'idb_category';
+	private const AJAX_ACTION        = 'idb_core_blog';
+	private const NONCE_ACTION       = 'idb_core_blog';
+	private const SCRIPT_OBJECT      = 'idbCoreBlog';
+
+	/**
+	 * Front-end URL being rendered during an AJAX request.
+	 *
+	 * @var string
+	 */
+	private string $ajax_url = '';
 
 	/**
 	 * Render latest blog posts.
@@ -66,6 +76,44 @@ final class BlogRenderer {
 		}
 
 		$this->enqueue_assets();
+	}
+
+	/**
+	 * Render blog posts for AJAX pagination requests.
+	 *
+	 * @return void
+	 */
+	public function ajax_render(): void {
+		check_ajax_referer( self::NONCE_ACTION, 'nonce' );
+
+		$atts = $this->get_ajax_request_atts();
+		$url  = isset( $_POST['url'] ) ? esc_url_raw( wp_unslash( $_POST['url'] ) ) : '';
+
+		$this->ajax_url = $url;
+
+		$atts['paged'] = $this->get_page_from_url( $url );
+
+		$this->apply_url_category_to_request( $url );
+
+		wp_send_json_success(
+			array(
+				'html' => $this->render( $atts ),
+				'url'  => $url,
+			)
+		);
+	}
+
+	/**
+	 * Get AJAX-safe shortcode attributes for the rendered wrapper.
+	 *
+	 * @param array<string,mixed> $atts Shortcode attributes.
+	 *
+	 * @return string
+	 */
+	public function get_ajax_attributes( array $atts ): string {
+		$attributes = wp_json_encode( $this->normalize_atts( $atts ) );
+
+		return is_string( $attributes ) ? $attributes : '{}';
 	}
 
 	/**
@@ -192,13 +240,51 @@ final class BlogRenderer {
 	 * @return string
 	 */
 	public function get_category_filter_url( string $category_slug ): string {
-		$url = remove_query_arg( array( self::CATEGORY_QUERY_VAR, 'paged', 'page' ), get_pagenum_link( 1 ) );
+		$url = $this->get_frontend_base_url();
 
 		if ( '' === $category_slug ) {
 			return $url;
 		}
 
 		return add_query_arg( self::CATEGORY_QUERY_VAR, sanitize_title( $category_slug ), $url );
+	}
+
+	/**
+	 * Get paginate_links base URL.
+	 *
+	 * @param int $big Placeholder page number.
+	 *
+	 * @return string
+	 */
+	public function get_pagination_base( int $big ): string {
+		if ( '' === $this->ajax_url ) {
+			return str_replace(
+				$big,
+				'%#%',
+				esc_url( get_pagenum_link( $big ) )
+			);
+		}
+
+		return str_replace(
+			$big,
+			'%#%',
+			esc_url(
+				add_query_arg(
+					'paged',
+					$big,
+					$this->get_frontend_base_url()
+				)
+			)
+		);
+	}
+
+	/**
+	 * Get paginate_links format argument.
+	 *
+	 * @return string
+	 */
+	public function get_pagination_format(): string {
+		return '' === $this->ajax_url ? '?paged=%#%' : '';
 	}
 
 	/**
@@ -389,5 +475,117 @@ final class BlogRenderer {
 			IDB_CORE_VERSION,
 			true
 		);
+
+		wp_localize_script(
+			'idb-core-blog',
+			self::SCRIPT_OBJECT,
+			array(
+				'ajaxUrl' => admin_url( 'admin-ajax.php' ),
+				'action'  => self::AJAX_ACTION,
+				'nonce'   => wp_create_nonce( self::NONCE_ACTION ),
+			)
+		);
+	}
+
+	/**
+	 * Read and sanitize AJAX shortcode attributes.
+	 *
+	 * @return array<string,mixed>
+	 */
+	private function get_ajax_request_atts(): array {
+		if ( ! isset( $_POST['atts'] ) ) {
+			return array();
+		}
+
+		$raw_atts = wp_unslash( $_POST['atts'] );
+		$atts     = json_decode( is_string( $raw_atts ) ? $raw_atts : '', true );
+
+		if ( ! is_array( $atts ) ) {
+			return array();
+		}
+
+		return array(
+			'category'       => sanitize_title( (string) ( $atts['category'] ?? '' ) ),
+			'columns'        => absint( $atts['columns'] ?? 0 ),
+			'excerpt'        => absint( $atts['excerpt'] ?? 0 ),
+			'order'          => sanitize_key( (string) ( $atts['order'] ?? 'DESC' ) ),
+			'orderby'        => sanitize_key( (string) ( $atts['orderby'] ?? 'date' ) ),
+			'pagination'     => ! empty( $atts['pagination'] ) ? 'yes' : 'no',
+			'posts'          => absint( $atts['posts'] ?? 0 ),
+			'posts_per_page' => absint( $atts['posts'] ?? 0 ),
+		);
+	}
+
+	/**
+	 * Read pagination from a URL while preserving non-JS URL formats.
+	 *
+	 * @param string $url Target pagination URL.
+	 *
+	 * @return int
+	 */
+	private function get_page_from_url( string $url ): int {
+		$parts = wp_parse_url( $url );
+
+		if ( ! is_array( $parts ) ) {
+			return 1;
+		}
+
+		if ( isset( $parts['query'] ) ) {
+			parse_str( $parts['query'], $query_args );
+
+			foreach ( array( 'paged', 'page' ) as $page_key ) {
+				if ( isset( $query_args[ $page_key ] ) ) {
+					return max( 1, absint( $query_args[ $page_key ] ) );
+				}
+			}
+		}
+
+		if ( isset( $parts['path'] ) && preg_match( '#/page/([0-9]+)/?#', $parts['path'], $matches ) ) {
+			return max( 1, absint( $matches[1] ) );
+		}
+
+		return 1;
+	}
+
+	/**
+	 * Get the front-end listing URL without pagination state.
+	 *
+	 * @return string
+	 */
+	private function get_frontend_base_url(): string {
+		if ( '' === $this->ajax_url ) {
+			return remove_query_arg( array( self::CATEGORY_QUERY_VAR, 'paged', 'page' ), get_pagenum_link( 1 ) );
+		}
+
+		$url = remove_query_arg( array( self::CATEGORY_QUERY_VAR, 'paged', 'page' ), $this->ajax_url );
+
+		return preg_replace( '#/page/[0-9]+/?#', '/', $url ) ?? $url;
+	}
+
+	/**
+	 * Make the target URL category available to existing query helpers.
+	 *
+	 * @param string $url Target pagination or filter URL.
+	 *
+	 * @return void
+	 */
+	private function apply_url_category_to_request( string $url ): void {
+		$parts    = wp_parse_url( $url );
+		$category = '';
+
+		if ( is_array( $parts ) && isset( $parts['query'] ) ) {
+			parse_str( $parts['query'], $query_args );
+
+			if ( isset( $query_args[ self::CATEGORY_QUERY_VAR ] ) ) {
+				$category = sanitize_title( (string) $query_args[ self::CATEGORY_QUERY_VAR ] );
+			}
+		}
+
+		if ( '' === $category ) {
+			unset( $_GET[ self::CATEGORY_QUERY_VAR ] );
+			return;
+		}
+
+		$_GET[ self::CATEGORY_QUERY_VAR ] = $category;
 	}
 }
