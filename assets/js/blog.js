@@ -16,8 +16,14 @@
 		return element ? element.closest('.idb-blog__pagination a, .idb-blog__filter-link') : null;
 	}
 
+	function getAjaxForm(element) {
+		return element ? element.closest('.idb-blog__search') : null;
+	}
+
 	function setLoading(blog, isLoading) {
-		var links = blog.querySelectorAll('.idb-blog__pagination a, .idb-blog__filter-link');
+		var controls = blog.querySelectorAll(
+			'.idb-blog__pagination a, .idb-blog__filter-link, .idb-blog__search-input, .idb-blog__search-button'
+		);
 
 		blog.classList.toggle('idb-blog--is-loading', isLoading);
 		blog.setAttribute('aria-busy', isLoading ? 'true' : 'false');
@@ -28,8 +34,12 @@
 			delete blog.dataset.idbBlogLoading;
 		}
 
-		links.forEach(function (link) {
-			link.setAttribute('aria-disabled', isLoading ? 'true' : 'false');
+		controls.forEach(function (control) {
+			control.setAttribute('aria-disabled', isLoading ? 'true' : 'false');
+
+			if ('disabled' in control) {
+				control.disabled = isLoading;
+			}
 		});
 	}
 
@@ -65,6 +75,26 @@
 		blog.replaceWith(nextBlog);
 
 		return nextBlog;
+	}
+
+	function getFormUrl(form) {
+		var url = new URL(form.action || window.location.href, window.location.href);
+		var data = new FormData(form);
+
+		url.searchParams.delete('paged');
+		url.searchParams.delete('page');
+
+		data.forEach(function (value, key) {
+			var nextValue = String(value).trim();
+
+			if (nextValue) {
+				url.searchParams.set(key, nextValue);
+			} else {
+				url.searchParams.delete(key);
+			}
+		});
+
+		return url.toString();
 	}
 
 	function loadBlog(blog, url, shouldPushState) {
@@ -136,6 +166,23 @@
 		}
 
 		loadBlog(blog, link.href, true);
+	});
+
+	document.addEventListener('submit', function (event) {
+		var form = getAjaxForm(event.target);
+		var blog = getBlog(form);
+
+		if (!form || !blog) {
+			return;
+		}
+
+		event.preventDefault();
+
+		if (blog.dataset.idbBlogLoading === '1') {
+			return;
+		}
+
+		loadBlog(blog, getFormUrl(form), true);
 	});
 
 	window.addEventListener('popstate', function () {

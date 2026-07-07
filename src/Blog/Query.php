@@ -34,6 +34,7 @@ final class Query {
 			'post_type'      => 'post',
 			'post_status'    => 'publish',
 			'no_found_rows'  => false,
+			's'              => '',
 		);
 
 		$args = wp_parse_args( $args, $defaults );
@@ -64,6 +65,12 @@ final class Query {
 			'ignore_sticky_posts' => true,
 			'no_found_rows'       => (bool) $args['no_found_rows'],
 		);
+
+		$search = sanitize_text_field( (string) $args['s'] );
+
+		if ( '' !== $search ) {
+			$query['s'] = $search;
+		}
 
 		if ( ! empty( $args['category_name'] ) ) {
 			$query['category_name'] = sanitize_title( (string) $args['category_name'] );
