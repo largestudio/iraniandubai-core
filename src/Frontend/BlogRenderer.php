@@ -19,6 +19,7 @@ if ( ! defined( 'ABSPATH' ) ) {
  */
 final class BlogRenderer {
 	private const CATEGORY_QUERY_VAR = 'idb_category';
+	private const SEARCH_QUERY_VAR   = 'idb_search';
 	private const AJAX_ACTION        = 'idb_core_blog';
 	private const NONCE_ACTION       = 'idb_core_blog';
 	private const SCRIPT_OBJECT      = 'idbCoreBlog';
@@ -135,7 +136,7 @@ final class BlogRenderer {
 
 		$atts['paged'] = $this->get_page_from_url( $url );
 
-		$this->apply_url_category_to_request( $url );
+		$this->apply_url_filters_to_request( $url );
 
 		wp_send_json_success(
 			array(
@@ -321,12 +322,35 @@ final class BlogRenderer {
 	 */
 	public function get_category_filter_url( string $category_slug ): string {
 		$url = $this->get_frontend_base_url();
+		$search = $this->get_requested_search();
+
+		if ( '' !== $search ) {
+			$url = add_query_arg( self::SEARCH_QUERY_VAR, $search, $url );
+		}
 
 		if ( '' === $category_slug ) {
 			return $url;
 		}
 
 		return add_query_arg( self::CATEGORY_QUERY_VAR, sanitize_title( $category_slug ), $url );
+	}
+
+	/**
+	 * Get selected search query.
+	 *
+	 * @return string
+	 */
+	public function get_selected_search(): string {
+		return $this->get_requested_search();
+	}
+
+	/**
+	 * Get search form action URL.
+	 *
+	 * @return string
+	 */
+	public function get_search_url(): string {
+		return $this->get_frontend_base_url();
 	}
 
 	/**
@@ -391,6 +415,7 @@ final class BlogRenderer {
 		$normalized = $this->normalize_atts( $atts );
 
 		$requested_category = $this->get_requested_category();
+		$requested_search   = $this->get_requested_search();
 
 		return Query::make(
 			array(
@@ -400,6 +425,7 @@ final class BlogRenderer {
 				'orderby'        => $normalized['orderby'],
 				'category_name'  => '' !== $requested_category ? $requested_category : $normalized['category'],
 				'no_found_rows'  => ! $normalized['pagination'],
+				's'              => $requested_search,
 			)
 		);
 	}
@@ -514,6 +540,19 @@ final class BlogRenderer {
 		}
 
 		return sanitize_title( wp_unslash( $_GET[ self::CATEGORY_QUERY_VAR ] ) );
+	}
+
+	/**
+	 * Get requested search value.
+	 *
+	 * @return string
+	 */
+	private function get_requested_search(): string {
+		if ( ! isset( $_GET[ self::SEARCH_QUERY_VAR ] ) ) {
+			return '';
+		}
+
+		return sanitize_text_field( wp_unslash( $_GET[ self::SEARCH_QUERY_VAR ] ) );
 	}
 
 	/**
@@ -649,24 +688,25 @@ final class BlogRenderer {
 	 */
 	private function get_frontend_base_url(): string {
 		if ( '' === $this->ajax_url ) {
-			return remove_query_arg( array( self::CATEGORY_QUERY_VAR, 'paged', 'page' ), get_pagenum_link( 1 ) );
+			return remove_query_arg( array( self::CATEGORY_QUERY_VAR, self::SEARCH_QUERY_VAR, 'paged', 'page' ), get_pagenum_link( 1 ) );
 		}
 
-		$url = remove_query_arg( array( self::CATEGORY_QUERY_VAR, 'paged', 'page' ), $this->ajax_url );
+		$url = remove_query_arg( array( self::CATEGORY_QUERY_VAR, self::SEARCH_QUERY_VAR, 'paged', 'page' ), $this->ajax_url );
 
 		return preg_replace( '#/page/[0-9]+/?#', '/', $url ) ?? $url;
 	}
 
 	/**
-	 * Make the target URL category available to existing query helpers.
+	 * Make target URL filters available to existing query helpers.
 	 *
 	 * @param string $url Target pagination or filter URL.
 	 *
 	 * @return void
 	 */
-	private function apply_url_category_to_request( string $url ): void {
+	private function apply_url_filters_to_request( string $url ): void {
 		$parts    = wp_parse_url( $url );
 		$category = '';
+		$search   = '';
 
 		if ( is_array( $parts ) && isset( $parts['query'] ) ) {
 			parse_str( $parts['query'], $query_args );
@@ -674,13 +714,23 @@ final class BlogRenderer {
 			if ( isset( $query_args[ self::CATEGORY_QUERY_VAR ] ) ) {
 				$category = sanitize_title( (string) $query_args[ self::CATEGORY_QUERY_VAR ] );
 			}
+
+			if ( isset( $query_args[ self::SEARCH_QUERY_VAR ] ) ) {
+				$search = sanitize_text_field( (string) $query_args[ self::SEARCH_QUERY_VAR ] );
+			}
 		}
 
 		if ( '' === $category ) {
 			unset( $_GET[ self::CATEGORY_QUERY_VAR ] );
+		} else {
+			$_GET[ self::CATEGORY_QUERY_VAR ] = $category;
+		}
+
+		if ( '' === $search ) {
+			unset( $_GET[ self::SEARCH_QUERY_VAR ] );
 			return;
 		}
 
-		$_GET[ self::CATEGORY_QUERY_VAR ] = $category;
+		$_GET[ self::SEARCH_QUERY_VAR ] = $search;
 	}
 }

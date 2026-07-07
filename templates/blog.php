@@ -24,10 +24,12 @@ if (
 }
 
 $selected_category = $blog_renderer->get_selected_category( $blog_atts );
+$selected_search   = $blog_renderer->get_selected_search();
 $filter_categories = $blog_renderer->get_filter_categories( $blog_atts );
 $columns           = isset( $blog_atts['columns'] ) ? absint( $blog_atts['columns'] ) : 2;
 $excerpt_length    = isset( $blog_atts['excerpt'] ) ? absint( $blog_atts['excerpt'] ) : 24;
 $ajax_atts         = $blog_renderer->get_ajax_attributes( $blog_atts );
+$search_id         = wp_unique_id( 'idb-blog-search-' );
 ?>
 
 <section class="idb-blog" data-idb-blog data-idb-blog-atts="<?php echo esc_attr( $ajax_atts ); ?>" aria-label="<?php esc_attr_e( 'Latest blog posts', 'iraniandubai-core' ); ?>">
@@ -44,6 +46,32 @@ $ajax_atts         = $blog_renderer->get_ajax_attributes( $blog_atts );
 			<?php endforeach; ?>
 		</nav>
 	<?php endif; ?>
+
+	<form
+		class="idb-blog__search"
+		action="<?php echo esc_url( $blog_renderer->get_search_url() ); ?>"
+		method="get"
+		role="search"
+	>
+		<?php if ( '' !== $selected_category ) : ?>
+			<input type="hidden" name="idb_category" value="<?php echo esc_attr( $selected_category ); ?>" />
+		<?php endif; ?>
+
+		<label class="screen-reader-text" for="<?php echo esc_attr( $search_id ); ?>">
+			<?php esc_html_e( 'Search blog posts', 'iraniandubai-core' ); ?>
+		</label>
+		<input
+			id="<?php echo esc_attr( $search_id ); ?>"
+			class="idb-blog__search-input"
+			type="search"
+			name="idb_search"
+			value="<?php echo esc_attr( $selected_search ); ?>"
+			placeholder="<?php esc_attr_e( 'Search posts', 'iraniandubai-core' ); ?>"
+		/>
+		<button class="idb-blog__search-button" type="submit">
+			<?php esc_html_e( 'Search', 'iraniandubai-core' ); ?>
+		</button>
+	</form>
 
 	<?php if ( $blog_query->have_posts() ) : ?>
 		<div class="idb-blog__grid idb-blog__grid--columns-<?php echo esc_attr( (string) $columns ); ?>">
@@ -115,6 +143,7 @@ $ajax_atts         = $blog_renderer->get_ajax_attributes( $blog_atts );
 				<?php
 				$big          = 999999999;
 				$current_page = isset( $blog_paged ) ? max( 1, absint( $blog_paged ) ) : $blog_renderer->get_current_page( $blog_atts );
+				$add_args     = array();
 
 				$pagination_args = array(
 					'base'      => $blog_renderer->get_pagination_base( $big ),
@@ -126,9 +155,15 @@ $ajax_atts         = $blog_renderer->get_ajax_attributes( $blog_atts );
 				);
 
 				if ( '' !== $selected_category ) {
-					$pagination_args['add_args'] = array(
-						'idb_category' => $selected_category,
-					);
+					$add_args['idb_category'] = $selected_category;
+				}
+
+				if ( '' !== $selected_search ) {
+					$add_args['idb_search'] = $selected_search;
+				}
+
+				if ( ! empty( $add_args ) ) {
+					$pagination_args['add_args'] = $add_args;
 				}
 
 				$pagination = paginate_links( $pagination_args );
