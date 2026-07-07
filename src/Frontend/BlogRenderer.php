@@ -279,8 +279,8 @@ final class BlogRenderer {
 			$posts = absint( $atts['posts_per_page'] );
 		}
 
-		$columns = isset( $atts['columns'] ) && '' !== $atts['columns'] ? absint( $atts['columns'] ) : absint( $options['columns'] );
-		$excerpt = isset( $atts['excerpt'] ) && '' !== $atts['excerpt'] ? absint( $atts['excerpt'] ) : absint( $options['excerpt_length'] );
+		$columns = $this->get_int_attribute( $atts, 'columns', $options['columns'] );
+		$excerpt = $this->get_int_attribute( $atts, 'excerpt', $options['excerpt_length'] );
 		$order = strtoupper( sanitize_key( (string) ( $atts['order'] ?? 'DESC' ) ) );
 
 		if ( ! in_array( $order, array( 'ASC', 'DESC' ), true ) ) {
@@ -306,13 +306,26 @@ final class BlogRenderer {
 
 		return array(
 			'category'   => $category,
-			'columns'    => max( 1, min( 4, $columns ) ),
+			'columns'    => Defaults::clamp_int( $columns, Defaults::COLUMNS_MIN, Defaults::COLUMNS_MAX ),
 			'excerpt'    => max( 0, min( 80, $excerpt ) ),
 			'order'      => $order,
 			'orderby'    => $orderby,
 			'pagination' => $this->string_to_bool( $atts['pagination'] ?? 'yes' ),
-			'posts'      => max( 1, min( 48, $posts ) ),
+			'posts'      => Defaults::clamp_int( $posts, Defaults::POSTS_PER_PAGE_MIN, Defaults::POSTS_PER_PAGE_MAX ),
 		);
+	}
+
+	/**
+	 * Get an integer shortcode/widget attribute with a fallback.
+	 *
+	 * @param array<string,mixed> $atts    Attributes.
+	 * @param string              $key     Attribute key.
+	 * @param int                 $default Default value.
+	 *
+	 * @return int
+	 */
+	private function get_int_attribute( array $atts, string $key, int $default ): int {
+		return isset( $atts[ $key ] ) && '' !== $atts[ $key ] ? absint( $atts[ $key ] ) : $default;
 	}
 
 	/**

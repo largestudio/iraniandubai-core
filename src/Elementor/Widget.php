@@ -66,23 +66,24 @@ final class Widget extends Widget_Base {
 	public function get_icon(): string {
 		return 'eicon-post-list';
 	}
-/**
- * Widget stylesheet.
- *
- * @return string[]
- */
-public function get_style_depends(): array {
-    return array( 'idb-blog' );
-}
 
-/**
- * Widget script.
- *
- * @return string[]
- */
-public function get_script_depends(): array {
-	return array();
-}
+	/**
+	 * Widget stylesheet.
+	 *
+	 * @return string[]
+	 */
+	public function get_style_depends(): array {
+		return array( 'idb-blog' );
+	}
+
+	/**
+	 * Widget script.
+	 *
+	 * @return string[]
+	 */
+	public function get_script_depends(): array {
+		return array();
+	}
 	/**
 	 * Get widget categories.
 	 *
@@ -121,11 +122,11 @@ public function get_script_depends(): array {
 		$this->add_control(
 			'posts',
 			array(
-				'label'   => __( 'Posts', 'iraniandubai-core' ),
-				'type'    => Controls_Manager::NUMBER,
+				'label'       => __( 'Posts', 'iraniandubai-core' ),
+				'type'        => Controls_Manager::NUMBER,
 				'default'     => '',
-				'min'         => 1,
-				'max'         => 48,
+				'min'         => Defaults::POSTS_PER_PAGE_MIN,
+				'max'         => Defaults::POSTS_PER_PAGE_MAX,
 				'step'        => 1,
 				'placeholder' => (string) $defaults['posts_per_page'],
 			)
@@ -191,8 +192,8 @@ public function get_script_depends(): array {
 		$this->add_control(
 			'excerpt',
 			array(
-				'label'   => __( 'Excerpt', 'iraniandubai-core' ),
-				'type'    => Controls_Manager::NUMBER,
+				'label'       => __( 'Excerpt', 'iraniandubai-core' ),
+				'type'        => Controls_Manager::NUMBER,
 				'default'     => '',
 				'min'         => 0,
 				'max'         => 80,
