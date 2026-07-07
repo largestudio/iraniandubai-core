@@ -120,8 +120,8 @@ $pagination_args = array(
 	'format'    => '?paged=%#%',
 	'total'     => $blog_query->max_num_pages,
 	'current'   => $current_page,
-	'prev_text' => '«',
-	'next_text' => '»',
+	'prev_text' => '&lsaquo;',
+	'next_text' => '&rsaquo;',
 );
 
 				if ( '' !== $selected_category ) {
