@@ -3,7 +3,7 @@
  * Plugin Name: IranianDubai Core
  * Plugin URI: https://iraniandubai.com
  * Description: Core Plugin for IranianDubai Website.
- * Version: 0.7.2
+ * Version: 0.7.3
  * Author: Large Studio
  * Author URI: https://iraniandubai.com
  * Requires PHP: 8.2
@@ -19,7 +19,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-define( 'IDB_CORE_VERSION', '0.7.2' );
+define( 'IDB_CORE_VERSION', '0.7.3' );
 define( 'IDB_CORE_FILE', __FILE__ );
 define( 'IDB_CORE_PATH', plugin_dir_path( __FILE__ ) );
 define( 'IDB_CORE_URL', plugin_dir_url( __FILE__ ) );

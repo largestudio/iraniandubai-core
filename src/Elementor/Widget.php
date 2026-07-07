@@ -10,6 +10,7 @@ namespace IDB\Elementor;
 use Elementor\Controls_Manager;
 use Elementor\Group_Control_Typography;
 use Elementor\Widget_Base;
+use IDB\Blog\Defaults;
 use IDB\Frontend\BlogRenderer;
 
 if ( ! defined( 'ABSPATH' ) ) {
@@ -107,6 +108,8 @@ public function get_script_depends(): array {
 	 * @return void
 	 */
 	private function register_content_controls(): void {
+		$defaults = Defaults::SETTINGS;
+
 		$this->start_controls_section(
 			'content_section',
 			array(
@@ -120,10 +123,11 @@ public function get_script_depends(): array {
 			array(
 				'label'   => __( 'Posts', 'iraniandubai-core' ),
 				'type'    => Controls_Manager::NUMBER,
-				'default' => 6,
-				'min'     => 1,
-				'max'     => 48,
-				'step'    => 1,
+				'default'     => '',
+				'min'         => 1,
+				'max'         => 48,
+				'step'        => 1,
+				'placeholder' => (string) $defaults['posts_per_page'],
 			)
 		);
 
@@ -132,8 +136,9 @@ public function get_script_depends(): array {
 			array(
 				'label'   => __( 'Columns', 'iraniandubai-core' ),
 				'type'    => Controls_Manager::SELECT,
-				'default' => 2,
+				'default' => '',
 				'options' => array(
+					'' => __( 'Default', 'iraniandubai-core' ),
 					1 => __( '1 Column', 'iraniandubai-core' ),
 					2 => __( '2 Columns', 'iraniandubai-core' ),
 					3 => __( '3 Columns', 'iraniandubai-core' ),
@@ -188,10 +193,11 @@ public function get_script_depends(): array {
 			array(
 				'label'   => __( 'Excerpt', 'iraniandubai-core' ),
 				'type'    => Controls_Manager::NUMBER,
-				'default' => 24,
-				'min'     => 0,
-				'max'     => 80,
-				'step'    => 1,
+				'default'     => '',
+				'min'         => 0,
+				'max'         => 80,
+				'step'        => 1,
+				'placeholder' => (string) $defaults['excerpt_length'],
 			)
 		);
 
@@ -315,20 +321,23 @@ public function get_script_depends(): array {
 	 * @return void
 	 */
 	protected function render(): void {
-		$settings = $this->get_settings_for_display();
+		$data     = $this->get_data();
+		$settings = isset( $data['settings'] ) && is_array( $data['settings'] ) ? $data['settings'] : array();
+		$atts     = array(
+			'category'   => $settings['category'] ?? '',
+			'order'      => $settings['order'] ?? 'DESC',
+			'orderby'    => $settings['orderby'] ?? 'date',
+			'pagination' => $settings['pagination'] ?? 'yes',
+		);
+
+		foreach ( array( 'posts', 'columns', 'excerpt' ) as $setting_key ) {
+			if ( array_key_exists( $setting_key, $settings ) && '' !== $settings[ $setting_key ] ) {
+				$atts[ $setting_key ] = $settings[ $setting_key ];
+			}
+		}
 
 		// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- BlogRenderer returns escaped template markup.
-		echo $this->renderer->render(
-			array(
-				'posts'      => $settings['posts'] ?? 6,
-				'columns'    => $settings['columns'] ?? 2,
-				'category'   => $settings['category'] ?? '',
-				'order'      => $settings['order'] ?? 'DESC',
-				'orderby'    => $settings['orderby'] ?? 'date',
-				'excerpt'    => $settings['excerpt'] ?? 24,
-				'pagination' => $settings['pagination'] ?? 'yes',
-			)
-		);
+		echo $this->renderer->render( $atts );
 	}
 
 	/**

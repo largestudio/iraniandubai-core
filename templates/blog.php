@@ -7,6 +7,7 @@
  * @var WP_Query                  $blog_query    Blog posts query.
  * @var IDB\Frontend\BlogRenderer $blog_renderer Blog renderer.
  * @var array<string,mixed>       $blog_atts     Blog shortcode attributes.
+ * @var int                       $blog_paged    Current pagination page.
  */
 
 if ( ! defined( 'ABSPATH' ) ) {
@@ -107,7 +108,8 @@ $excerpt_length    = isset( $blog_atts['excerpt'] ) ? absint( $blog_atts['excerp
 		<?php if ( $blog_renderer->has_pagination( $blog_atts ) && $blog_query->max_num_pages > 1 ) : ?>
 			<nav class="idb-blog__pagination" aria-label="<?php esc_attr_e( 'Blog pagination', 'iraniandubai-core' ); ?>">
 				<?php
-				$big = 999999999;
+				$big          = 999999999;
+				$current_page = isset( $blog_paged ) ? max( 1, absint( $blog_paged ) ) : $blog_renderer->get_current_page( $blog_atts );
 
 $pagination_args = array(
 	'base'      => str_replace(
@@ -117,9 +119,9 @@ $pagination_args = array(
 	),
 	'format'    => '?paged=%#%',
 	'total'     => $blog_query->max_num_pages,
-	'current'   => max( 1, get_query_var( 'paged' ) ),
-	'prev_text' => '«',
-	'next_text' => '»',
+	'current'   => $current_page,
+	'prev_text' => '&lsaquo;',
+	'next_text' => '&rsaquo;',
 );
 
 				if ( '' !== $selected_category ) {

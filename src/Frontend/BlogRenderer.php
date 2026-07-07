@@ -6,6 +6,8 @@
  */
 
 namespace IDB\Frontend;
+
+use IDB\Blog\Defaults;
 use IDB\Blog\Query;
 
 if ( ! defined( 'ABSPATH' ) ) {
@@ -35,6 +37,7 @@ final class BlogRenderer {
 		$blog_query    = $query;
 		$blog_renderer = $this;
 		$blog_atts     = $this->normalize_atts( $atts );
+		$blog_paged    = $this->get_current_page( $atts );
 		$template      = IDB_CORE_PATH . 'templates/blog.php';
 
 		if ( is_readable( $template ) ) {
@@ -189,7 +192,7 @@ final class BlogRenderer {
 	 * @return string
 	 */
 	public function get_category_filter_url( string $category_slug ): string {
-		$url = remove_query_arg( array( self::CATEGORY_QUERY_VAR, 'paged', 'page' ) );
+		$url = remove_query_arg( array( self::CATEGORY_QUERY_VAR, 'paged', 'page' ), get_pagenum_link( 1 ) );
 
 		if ( '' === $category_slug ) {
 			return $url;
@@ -221,35 +224,17 @@ final class BlogRenderer {
 	private function get_query( array $atts ): \WP_Query {
 		$normalized = $this->normalize_atts( $atts );
 
-		$query_args = array(
-			'post_type'           => 'post',
-			'post_status'         => 'publish',
-			'posts_per_page'      => $normalized['posts'],
-			'paged'               => $this->get_current_page( $atts ),
-			'order'               => $normalized['order'],
-			'orderby'             => $normalized['orderby'],
-			'ignore_sticky_posts' => true,
-		);
-
-		if ( '' !== $normalized['category'] ) {
-			$query_args['category_name'] = $normalized['category'];
-		}
-
 		$requested_category = $this->get_requested_category();
 
-if ( '' !== $requested_category ) {
-    $query_args['category_name'] = $requested_category;
-}
-
-return Query::make(
-	array(
-		'posts'    => $normalized['posts'],
-		'category' => $query_args['category_name'] ?? '',
-		'orderby'  => $normalized['orderby'],
-		'order'    => $normalized['order'],
-		'paged'    => $query_args['paged'],
-	)
-);
+		return Query::make(
+			array(
+				'posts_per_page' => $normalized['posts'],
+				'paged'          => $this->get_current_page( $atts ),
+				'order'          => $normalized['order'],
+				'orderby'        => $normalized['orderby'],
+				'category_name'  => '' !== $requested_category ? $requested_category : $normalized['category'],
+			)
+		);
 	}
 
 	/**
@@ -259,23 +244,25 @@ return Query::make(
 	 *
 	 * @return int
 	 */
-	private function get_current_page( array $atts ): int {
+	public function get_current_page( array $atts = array() ): int {
+		if ( isset( $atts['paged'] ) && '' !== $atts['paged'] ) {
+			return max( 1, absint( $atts['paged'] ) );
+		}
 
-	if ( ! empty( $atts['paged'] ) ) {
-		return max( 1, absint( $atts['paged'] ) );
+		$paged = get_query_var( 'paged' );
+
+		if ( $paged ) {
+			return max( 1, absint( $paged ) );
+		}
+
+		$page = get_query_var( 'page' );
+
+		if ( $page ) {
+			return max( 1, absint( $page ) );
+		}
+
+		return 1;
 	}
-
-	if ( get_query_var( 'paged' ) ) {
-		return max( 1, absint( get_query_var( 'paged' ) ) );
-	}
-
-	if ( get_query_var( 'page' ) ) {
-		return max( 1, absint( get_query_var( 'page' ) ) );
-	}
-
-	return 1;
-
-}
 
 	/**
 	 * Normalize shortcode attributes.
@@ -285,38 +272,15 @@ return Query::make(
 	 * @return array{category:string,columns:int,excerpt:int,order:string,orderby:string,pagination:bool,posts:int}
 	 */
 	private function normalize_atts( array $atts ): array {
-		
-		$options = wp_parse_args(
-	get_option( IDB_CORE_OPTION_NAME, array() ),
-	array(
-		'posts_per_page' => 6,
-		'excerpt_length' => 24,
-		'columns'        => 2,
-	)
-);
+		$options = Defaults::settings();
+		$posts   = isset( $atts['posts'] ) && '' !== $atts['posts'] ? absint( $atts['posts'] ) : absint( $options['posts_per_page'] );
 
-/*
- * &#1575;&#1711;&#1585; &#1588;&#1608;&#1585;&#1578;&#8204;&#1705;&#1583; &#1605;&#1602;&#1583;&#1575;&#1585; &#1608;&#1575;&#1602;&#1593;&#1740; &#1583;&#1575;&#1583;&#1607; &#1576;&#1575;&#1588;&#1583; &#1575;&#1586; &#1607;&#1605;&#1575;&#1606; &#1575;&#1587;&#1578;&#1601;&#1575;&#1583;&#1607; &#1705;&#1606;&#1548;
- * &#1583;&#1585; &#1594;&#1740;&#1585; &#1575;&#1740;&#1606; &#1589;&#1608;&#1585;&#1578; &#1575;&#1586; &#1578;&#1606;&#1592;&#1740;&#1605;&#1575;&#1578; &#1575;&#1601;&#1586;&#1608;&#1606;&#1607; &#1575;&#1587;&#1578;&#1601;&#1575;&#1583;&#1607; &#1705;&#1606;.
- */
+		if ( isset( $atts['posts_per_page'] ) && '' !== $atts['posts_per_page'] ) {
+			$posts = absint( $atts['posts_per_page'] );
+		}
 
-$posts = ! empty( $atts['posts'] )
-	? absint( $atts['posts'] )
-	: (
-		! empty( $atts['posts_per_page'] ) && absint( $atts['posts_per_page'] ) !== 6
-			? absint( $atts['posts_per_page'] )
-			: absint( $options['posts_per_page'] )
-	);
-
-$columns = ! empty( $atts['columns'] ) && absint( $atts['columns'] ) !== 2
-	? absint( $atts['columns'] )
-	: absint( $options['columns'] );
-
-$excerpt = ! empty( $atts['excerpt'] ) && absint( $atts['excerpt'] ) !== 24
-	? absint( $atts['excerpt'] )
-	: absint( $options['excerpt_length'] );
-		
-		
+		$columns = isset( $atts['columns'] ) && '' !== $atts['columns'] ? absint( $atts['columns'] ) : absint( $options['columns'] );
+		$excerpt = isset( $atts['excerpt'] ) && '' !== $atts['excerpt'] ? absint( $atts['excerpt'] ) : absint( $options['excerpt_length'] );
 		$order = strtoupper( sanitize_key( (string) ( $atts['order'] ?? 'DESC' ) ) );
 
 		if ( ! in_array( $order, array( 'ASC', 'DESC' ), true ) ) {
@@ -341,23 +305,14 @@ $excerpt = ! empty( $atts['excerpt'] ) && absint( $atts['excerpt'] ) !== 24
 		}
 
 		return array(
-	'category'   => $category,
-
-	'columns' => max(
-    1,
-    min( 4, $columns )
-),
-
-	'excerpt' => max(
-    0,
-    min( 80, $excerpt )
-),
-
-	'order'      => $order,
-	'orderby'    => $orderby,
-	'pagination' => $this->string_to_bool( $atts['pagination'] ?? 'yes' ),
-	'posts'      => max( 1, min( 48, $posts ) ),
-);
+			'category'   => $category,
+			'columns'    => max( 1, min( 4, $columns ) ),
+			'excerpt'    => max( 0, min( 80, $excerpt ) ),
+			'order'      => $order,
+			'orderby'    => $orderby,
+			'pagination' => $this->string_to_bool( $atts['pagination'] ?? 'yes' ),
+			'posts'      => max( 1, min( 48, $posts ) ),
+		);
 	}
 
 	/**
