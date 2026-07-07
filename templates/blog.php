@@ -48,6 +48,8 @@ $ajax_atts         = $blog_renderer->get_ajax_attributes( $blog_atts );
 	<?php if ( $blog_query->have_posts() ) : ?>
 		<div class="idb-blog__grid idb-blog__grid--columns-<?php echo esc_attr( (string) $columns ); ?>">
 			<?php
+			$blog_index = 0;
+
 			while ( $blog_query->have_posts() ) :
 				$blog_query->the_post();
 
@@ -55,10 +57,12 @@ $ajax_atts         = $blog_renderer->get_ajax_attributes( $blog_atts );
 				$permalink    = get_permalink( $post_id );
 				$category     = $blog_renderer->get_category( $post_id );
 				$reading_time = $blog_renderer->get_read_time( $post_id );
+				$is_priority  = 0 === $blog_index;
+				++$blog_index;
 				?>
 				<article <?php post_class( 'idb-blog-card' ); ?>>
 					<a class="idb-blog-card__media" href="<?php echo esc_url( $permalink ); ?>" aria-label="<?php echo esc_attr( get_the_title() ); ?>">
-						<?php echo wp_kses_post( $blog_renderer->get_image( $post_id ) ); ?>
+						<?php echo wp_kses_post( $blog_renderer->get_image( $post_id, $is_priority ) ); ?>
 					</a>
 
 					<div class="idb-blog-card__content">
