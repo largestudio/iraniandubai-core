@@ -9,6 +9,7 @@ namespace IDB\Core;
 use IDB\Admin\Settings;
 use IDB\Blog\Shortcode;
 use IDB\Elementor\Manager as ElementorManager;
+use IDB\Frontend\BlogRenderer;
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
@@ -145,6 +146,24 @@ final class Plugin {
 			array(
 				$this,
 				'load_textdomain',
+			)
+		);
+
+		$blog_renderer = new BlogRenderer();
+
+		add_action(
+			'wp_ajax_idb_core_blog',
+			array(
+				$blog_renderer,
+				'ajax_render',
+			)
+		);
+
+		add_action(
+			'wp_ajax_nopriv_idb_core_blog',
+			array(
+				$blog_renderer,
+				'ajax_render',
 			)
 		);
 

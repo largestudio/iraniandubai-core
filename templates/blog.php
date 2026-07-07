@@ -27,9 +27,10 @@ $selected_category = $blog_renderer->get_selected_category( $blog_atts );
 $filter_categories = $blog_renderer->get_filter_categories( $blog_atts );
 $columns           = isset( $blog_atts['columns'] ) ? absint( $blog_atts['columns'] ) : 2;
 $excerpt_length    = isset( $blog_atts['excerpt'] ) ? absint( $blog_atts['excerpt'] ) : 24;
+$ajax_atts         = $blog_renderer->get_ajax_attributes( $blog_atts );
 ?>
 
-<section class="idb-blog" aria-label="<?php esc_attr_e( 'Latest blog posts', 'iraniandubai-core' ); ?>">
+<section class="idb-blog" data-idb-blog data-idb-blog-atts="<?php echo esc_attr( $ajax_atts ); ?>" aria-label="<?php esc_attr_e( 'Latest blog posts', 'iraniandubai-core' ); ?>">
 	<?php if ( ! empty( $filter_categories ) ) : ?>
 		<nav class="idb-blog__filters" aria-label="<?php esc_attr_e( 'Blog category filter', 'iraniandubai-core' ); ?>">
 			<a class="idb-blog__filter-link <?php echo esc_attr( '' === $selected_category ? 'is-active' : '' ); ?>" href="<?php echo esc_url( $blog_renderer->get_category_filter_url( '' ) ); ?>">
@@ -112,12 +113,8 @@ $excerpt_length    = isset( $blog_atts['excerpt'] ) ? absint( $blog_atts['excerp
 				$current_page = isset( $blog_paged ) ? max( 1, absint( $blog_paged ) ) : $blog_renderer->get_current_page( $blog_atts );
 
 				$pagination_args = array(
-					'base'      => str_replace(
-						$big,
-						'%#%',
-						esc_url( get_pagenum_link( $big ) )
-					),
-					'format'    => '?paged=%#%',
+					'base'      => $blog_renderer->get_pagination_base( $big ),
+					'format'    => $blog_renderer->get_pagination_format(),
 					'total'     => $blog_query->max_num_pages,
 					'current'   => $current_page,
 					'prev_text' => '&lsaquo;',
