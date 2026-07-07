@@ -111,18 +111,18 @@ $excerpt_length    = isset( $blog_atts['excerpt'] ) ? absint( $blog_atts['excerp
 				$big          = 999999999;
 				$current_page = isset( $blog_paged ) ? max( 1, absint( $blog_paged ) ) : $blog_renderer->get_current_page( $blog_atts );
 
-$pagination_args = array(
-	'base'      => str_replace(
-		$big,
-		'%#%',
-		esc_url( get_pagenum_link( $big ) )
-	),
-	'format'    => '?paged=%#%',
-	'total'     => $blog_query->max_num_pages,
-	'current'   => $current_page,
-	'prev_text' => '&lsaquo;',
-	'next_text' => '&rsaquo;',
-);
+				$pagination_args = array(
+					'base'      => str_replace(
+						$big,
+						'%#%',
+						esc_url( get_pagenum_link( $big ) )
+					),
+					'format'    => '?paged=%#%',
+					'total'     => $blog_query->max_num_pages,
+					'current'   => $current_page,
+					'prev_text' => '&lsaquo;',
+					'next_text' => '&rsaquo;',
+				);
 
 				if ( '' !== $selected_category ) {
 					$pagination_args['add_args'] = array(
