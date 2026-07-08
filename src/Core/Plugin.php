@@ -11,6 +11,7 @@ use IDB\Admin\Settings;
 use IDB\Blog\Shortcode;
 use IDB\Elementor\Manager as ElementorManager;
 use IDB\Frontend\BlogRenderer;
+use IDB\ThemeBuilder\Manager as ThemeBuilderManager;
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
@@ -273,6 +274,7 @@ final class Plugin {
 			new Settings(),
 			new Shortcode(),
 			new ElementorManager(),
+			new ThemeBuilderManager(),
 		);
 	}
 
