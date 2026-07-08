@@ -28,11 +28,17 @@ $selected_search   = $blog_renderer->get_selected_search();
 $filter_categories = $blog_renderer->get_filter_categories( $blog_atts );
 $columns           = isset( $blog_atts['columns'] ) ? absint( $blog_atts['columns'] ) : 2;
 $excerpt_length    = isset( $blog_atts['excerpt'] ) ? absint( $blog_atts['excerpt'] ) : 24;
+$layout            = isset( $blog_atts['layout'] ) ? sanitize_html_class( (string) $blog_atts['layout'] ) : 'grid';
 $ajax_atts         = $blog_renderer->get_ajax_attributes( $blog_atts );
 $search_id         = wp_unique_id( 'idb-blog-search-' );
 ?>
 
-<section class="idb-blog" data-idb-blog data-idb-blog-atts="<?php echo esc_attr( $ajax_atts ); ?>" aria-label="<?php esc_attr_e( 'Latest blog posts', 'iraniandubai-core' ); ?>">
+<section
+	class="idb-blog idb-blog--layout-<?php echo esc_attr( $layout ); ?>"
+	data-idb-blog
+	data-idb-blog-atts="<?php echo esc_attr( $ajax_atts ); ?>"
+	aria-label="<?php esc_attr_e( 'Latest blog posts', 'iraniandubai-core' ); ?>"
+>
 	<?php if ( ! empty( $filter_categories ) ) : ?>
 		<nav class="idb-blog__filters" aria-label="<?php esc_attr_e( 'Blog category filter', 'iraniandubai-core' ); ?>">
 			<a class="idb-blog__filter-link <?php echo esc_attr( '' === $selected_category ? 'is-active' : '' ); ?>" href="<?php echo esc_url( $blog_renderer->get_category_filter_url( '' ) ); ?>">

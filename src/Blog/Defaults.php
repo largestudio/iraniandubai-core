@@ -35,18 +35,29 @@ final class Defaults {
 	public const COLUMNS_MAX = 4;
 
 	/**
+	 * Supported blog layout styles.
+	 */
+	public const LAYOUTS = array(
+		'grid',
+		'list',
+		'magazine',
+		'minimal',
+	);
+
+	/**
 	 * Default blog settings.
 	 */
 	public const SETTINGS = array(
 		'posts_per_page' => 6,
 		'excerpt_length' => 24,
 		'columns'        => 2,
+		'layout'         => 'grid',
 	);
 
 	/**
 	 * Get saved settings merged with defaults.
 	 *
-	 * @return array{posts_per_page:int,excerpt_length:int,columns:int}
+	 * @return array{posts_per_page:int,excerpt_length:int,columns:int,layout:string}
 	 */
 	public static function settings(): array {
 		$options = get_option( IDB_CORE_OPTION_NAME, array() );
@@ -63,7 +74,7 @@ final class Defaults {
 	 *
 	 * @param array<string,mixed> $settings Raw settings.
 	 *
-	 * @return array{posts_per_page:int,excerpt_length:int,columns:int}
+	 * @return array{posts_per_page:int,excerpt_length:int,columns:int,layout:string}
 	 */
 	public static function sanitize( array $settings ): array {
 		return array(
@@ -82,7 +93,21 @@ final class Defaults {
 				self::COLUMNS_MIN,
 				self::COLUMNS_MAX
 			),
+			'layout'         => self::sanitize_layout( $settings['layout'] ?? self::SETTINGS['layout'] ),
 		);
+	}
+
+	/**
+	 * Sanitize a blog layout value.
+	 *
+	 * @param mixed $layout Raw layout value.
+	 *
+	 * @return string
+	 */
+	public static function sanitize_layout( mixed $layout ): string {
+		$layout = sanitize_key( (string) $layout );
+
+		return in_array( $layout, self::LAYOUTS, true ) ? $layout : self::SETTINGS['layout'];
 	}
 
 	/**

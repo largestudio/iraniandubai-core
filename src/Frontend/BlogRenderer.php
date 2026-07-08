@@ -646,7 +646,7 @@ final class BlogRenderer {
 	 *
 	 * @param array<string,mixed> $atts Shortcode attributes.
 	 *
-	 * @return array{category:string,columns:int,excerpt:int,order:string,orderby:string,pagination:bool,posts:int}
+	 * @return array{category:string,columns:int,excerpt:int,layout:string,order:string,orderby:string,pagination:bool,posts:int}
 	 */
 	private function normalize_atts( array $atts ): array {
 		$cache_key = md5( (string) wp_json_encode( $atts ) );
@@ -664,6 +664,7 @@ final class BlogRenderer {
 
 		$columns = $this->get_int_attribute( $atts, 'columns', $options['columns'] );
 		$excerpt = $this->get_int_attribute( $atts, 'excerpt', $options['excerpt_length'] );
+		$layout  = Defaults::sanitize_layout( $options['layout'] );
 		$order = strtoupper( sanitize_key( (string) ( $atts['order'] ?? 'DESC' ) ) );
 
 		if ( ! in_array( $order, array( 'ASC', 'DESC' ), true ) ) {
@@ -691,6 +692,7 @@ final class BlogRenderer {
 			'category'   => $category,
 			'columns'    => Defaults::clamp_int( $columns, Defaults::COLUMNS_MIN, Defaults::COLUMNS_MAX ),
 			'excerpt'    => max( 0, min( 80, $excerpt ) ),
+			'layout'     => $layout,
 			'order'      => $order,
 			'orderby'    => $orderby,
 			'pagination' => $this->string_to_bool( $atts['pagination'] ?? 'yes' ),
@@ -1043,6 +1045,7 @@ final class BlogRenderer {
 			'category'       => sanitize_title( (string) ( $atts['category'] ?? '' ) ),
 			'columns'        => absint( $atts['columns'] ?? 0 ),
 			'excerpt'        => absint( $atts['excerpt'] ?? 0 ),
+			'layout'         => Defaults::sanitize_layout( $atts['layout'] ?? Defaults::SETTINGS['layout'] ),
 			'order'          => sanitize_key( (string) ( $atts['order'] ?? 'DESC' ) ),
 			'orderby'        => sanitize_key( (string) ( $atts['orderby'] ?? 'date' ) ),
 			'pagination'     => ! empty( $atts['pagination'] ) ? 'yes' : 'no',
