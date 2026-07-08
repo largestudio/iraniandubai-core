@@ -92,6 +92,12 @@ final class Settings implements ModuleInterface {
 			'Posts Per Page' => 'تعداد نوشته در هر صفحه',
 			'Number of posts displayed on each page. Allowed range: %1$d-%2$d posts.' => 'تعداد نوشته‌هایی که در هر صفحه نمایش داده می‌شود. بازه مجاز: %1$d تا %2$d نوشته.',
 			'Display Settings' => 'تنظیمات نمایش',
+			'Layout Style' => 'سبک چیدمان',
+			'Choose the blog layout style used by shortcode and Elementor output.' => 'سبک چیدمان بلاگ برای خروجی شورت‌کد و المنتور را انتخاب کنید.',
+			'Grid' => 'شبکه‌ای',
+			'List' => 'لیستی',
+			'Magazine' => 'مجله‌ای',
+			'Minimal' => 'ساده',
 			'Columns' => 'ستون‌ها',
 			'Desktop columns for the blog grid when no shortcode or Elementor column value is set.' => 'تعداد ستون‌های دسکتاپ برای شبکه بلاگ، وقتی مقدار ستون در شورت‌کد یا المنتور تنظیم نشده باشد.',
 			'Excerpt Length' => 'طول خلاصه',
@@ -304,7 +310,7 @@ final class Settings implements ModuleInterface {
 	/**
 	 * Plugin Options.
 	 *
-	 * @return array{posts_per_page:int,excerpt_length:int,columns:int}
+	 * @return array{posts_per_page:int,excerpt_length:int,columns:int,layout:string}
 	 */
 	private function options(): array {
 		return Defaults::settings();
@@ -395,6 +401,30 @@ final class Settings implements ModuleInterface {
 				<fieldset>
 					<legend class="screen-reader-text"><?php esc_html_e( 'Display Settings', 'iraniandubai-core' ); ?></legend>
 					<table class="form-table" role="presentation">
+						<tr>
+							<th scope="row">
+								<label for="layout">
+									<?php esc_html_e( 'Layout Style', 'iraniandubai-core' ); ?>
+								</label>
+							</th>
+							<td>
+								<select
+									id="layout"
+									name="layout"
+									aria-describedby="layout_description"
+								>
+									<?php foreach ( $this->get_layout_options() as $layout_value => $layout_label ) : ?>
+										<option value="<?php echo esc_attr( $layout_value ); ?>" <?php selected( $options['layout'], $layout_value ); ?>>
+											<?php echo esc_html( $layout_label ); ?>
+										</option>
+									<?php endforeach; ?>
+								</select>
+								<p id="layout_description" class="description">
+									<?php esc_html_e( 'Choose the blog layout style used by shortcode and Elementor output.', 'iraniandubai-core' ); ?>
+								</p>
+							</td>
+						</tr>
+
 						<tr>
 							<th scope="row">
 								<label for="columns">
@@ -604,6 +634,20 @@ final class Settings implements ModuleInterface {
 	}
 
 	/**
+	 * Get layout select options.
+	 *
+	 * @return array<string,string>
+	 */
+	private function get_layout_options(): array {
+		return array(
+			'grid'     => __( 'Grid', 'iraniandubai-core' ),
+			'list'     => __( 'List', 'iraniandubai-core' ),
+			'magazine' => __( 'Magazine', 'iraniandubai-core' ),
+			'minimal'  => __( 'Minimal', 'iraniandubai-core' ),
+		);
+	}
+
+	/**
 	 * Get supported shortcode attribute documentation rows.
 	 *
 	 * @return array<int,array{name:string,default:string,description:string}>
@@ -661,13 +705,14 @@ final class Settings implements ModuleInterface {
 	/**
 	 * Read and sanitize submitted settings.
 	 *
-	 * @return array{posts_per_page:int,excerpt_length:int,columns:int}
+	 * @return array{posts_per_page:int,excerpt_length:int,columns:int,layout:string}
 	 */
 	private function sanitize_posted_options(): array {
 		$posted = array(
 			'posts_per_page' => Defaults::SETTINGS['posts_per_page'],
 			'excerpt_length' => Defaults::SETTINGS['excerpt_length'],
 			'columns'        => Defaults::SETTINGS['columns'],
+			'layout'         => Defaults::SETTINGS['layout'],
 		);
 
 		foreach ( array_keys( $posted ) as $key ) {
