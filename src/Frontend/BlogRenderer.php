@@ -603,13 +603,20 @@ final class BlogRenderer {
 
 		return Query::make(
 			array(
-				'posts_per_page' => $normalized['posts'],
-				'paged'          => $this->get_current_page( $atts ),
-				'order'          => $normalized['order'],
-				'orderby'        => $normalized['orderby'],
-				'category_name'  => '' !== $requested_category ? $requested_category : $normalized['category'],
-				'no_found_rows'  => ! $normalized['pagination'],
-				's'              => $requested_search,
+				'posts_per_page'     => $normalized['posts'],
+				'paged'              => $this->get_current_page( $atts ),
+				'order'              => $normalized['order'],
+				'orderby'            => $normalized['orderby'],
+				'category_name'      => '' !== $requested_category ? $requested_category : $normalized['category'],
+				'include_categories' => $normalized['include_categories'],
+				'exclude_categories' => $normalized['exclude_categories'],
+				'include_tags'       => $normalized['include_tags'],
+				'exclude_tags'       => $normalized['exclude_tags'],
+				'author'             => $normalized['author'],
+				'sticky_posts_mode'  => $normalized['sticky_posts_mode'],
+				'offset'             => $normalized['offset'],
+				'no_found_rows'      => ! $normalized['pagination'],
+				's'                  => $requested_search,
 			)
 		);
 	}
@@ -646,7 +653,7 @@ final class BlogRenderer {
 	 *
 	 * @param array<string,mixed> $atts Shortcode attributes.
 	 *
-	 * @return array{category:string,columns:int,excerpt:int,layout:string,order:string,orderby:string,pagination:bool,posts:int}
+	 * @return array<string,mixed>
 	 */
 	private function normalize_atts( array $atts ): array {
 		$cache_key = md5( (string) wp_json_encode( $atts ) );
@@ -665,21 +672,8 @@ final class BlogRenderer {
 		$columns = $this->get_int_attribute( $atts, 'columns', $options['columns'] );
 		$excerpt = $this->get_int_attribute( $atts, 'excerpt', $options['excerpt_length'] );
 		$layout  = Defaults::sanitize_layout( $options['layout'] );
-		$order = strtoupper( sanitize_key( (string) ( $atts['order'] ?? 'DESC' ) ) );
-
-		if ( ! in_array( $order, array( 'ASC', 'DESC' ), true ) ) {
-			$order = 'DESC';
-		}
-
-		$orderby = sanitize_key( (string) ( $atts['orderby'] ?? 'date' ) );
-
-		if ( 'id' === $orderby ) {
-			$orderby = 'ID';
-		}
-
-		if ( ! in_array( $orderby, array( 'date', 'title', 'modified', 'menu_order', 'rand', 'comment_count', 'ID' ), true ) ) {
-			$orderby = 'date';
-		}
+		$order   = '' !== (string) ( $atts['order'] ?? '' ) ? Defaults::sanitize_order( $atts['order'] ) : $options['order'];
+		$orderby = '' !== (string) ( $atts['orderby'] ?? '' ) ? Defaults::sanitize_orderby( $atts['orderby'] ) : $options['orderby'];
 
 		$category = sanitize_title( (string) ( $atts['category'] ?? '' ) );
 		$term     = $this->get_category_by_value( $category );
@@ -689,14 +683,21 @@ final class BlogRenderer {
 		}
 
 		$this->normalized_atts_cache[ $cache_key ] = array(
-			'category'   => $category,
-			'columns'    => Defaults::clamp_int( $columns, Defaults::COLUMNS_MIN, Defaults::COLUMNS_MAX ),
-			'excerpt'    => max( 0, min( 80, $excerpt ) ),
-			'layout'     => $layout,
-			'order'      => $order,
-			'orderby'    => $orderby,
-			'pagination' => $this->string_to_bool( $atts['pagination'] ?? 'yes' ),
-			'posts'      => Defaults::clamp_int( $posts, Defaults::POSTS_PER_PAGE_MIN, Defaults::POSTS_PER_PAGE_MAX ),
+			'category'           => $category,
+			'columns'            => Defaults::clamp_int( $columns, Defaults::COLUMNS_MIN, Defaults::COLUMNS_MAX ),
+			'excerpt'            => max( 0, min( 80, $excerpt ) ),
+			'layout'             => $layout,
+			'include_categories' => $options['include_categories'],
+			'exclude_categories' => $options['exclude_categories'],
+			'include_tags'       => $options['include_tags'],
+			'exclude_tags'       => $options['exclude_tags'],
+			'author'             => $options['author'],
+			'sticky_posts_mode'  => $options['sticky_posts_mode'],
+			'offset'             => $options['offset'],
+			'order'              => $order,
+			'orderby'            => $orderby,
+			'pagination'         => $this->string_to_bool( $atts['pagination'] ?? 'yes' ),
+			'posts'              => Defaults::clamp_int( $posts, Defaults::POSTS_PER_PAGE_MIN, Defaults::POSTS_PER_PAGE_MAX ),
 		);
 
 		return $this->normalized_atts_cache[ $cache_key ];
@@ -1042,15 +1043,22 @@ final class BlogRenderer {
 		}
 
 		return array(
-			'category'       => sanitize_title( (string) ( $atts['category'] ?? '' ) ),
-			'columns'        => absint( $atts['columns'] ?? 0 ),
-			'excerpt'        => absint( $atts['excerpt'] ?? 0 ),
-			'layout'         => Defaults::sanitize_layout( $atts['layout'] ?? Defaults::SETTINGS['layout'] ),
-			'order'          => sanitize_key( (string) ( $atts['order'] ?? 'DESC' ) ),
-			'orderby'        => sanitize_key( (string) ( $atts['orderby'] ?? 'date' ) ),
-			'pagination'     => ! empty( $atts['pagination'] ) ? 'yes' : 'no',
-			'posts'          => absint( $atts['posts'] ?? 0 ),
-			'posts_per_page' => absint( $atts['posts'] ?? 0 ),
+			'category'           => sanitize_title( (string) ( $atts['category'] ?? '' ) ),
+			'columns'            => absint( $atts['columns'] ?? 0 ),
+			'excerpt'            => absint( $atts['excerpt'] ?? 0 ),
+			'layout'             => Defaults::sanitize_layout( $atts['layout'] ?? Defaults::SETTINGS['layout'] ),
+			'include_categories' => Defaults::sanitize_id_list( $atts['include_categories'] ?? array() ),
+			'exclude_categories' => Defaults::sanitize_id_list( $atts['exclude_categories'] ?? array() ),
+			'include_tags'       => Defaults::sanitize_id_list( $atts['include_tags'] ?? array() ),
+			'exclude_tags'       => Defaults::sanitize_id_list( $atts['exclude_tags'] ?? array() ),
+			'author'             => absint( $atts['author'] ?? 0 ),
+			'sticky_posts_mode'  => Defaults::sanitize_sticky_mode( $atts['sticky_posts_mode'] ?? Defaults::SETTINGS['sticky_posts_mode'] ),
+			'offset'             => Defaults::clamp_int( $atts['offset'] ?? 0, 0, Defaults::OFFSET_MAX ),
+			'order'              => Defaults::sanitize_order( $atts['order'] ?? Defaults::SETTINGS['order'] ),
+			'orderby'            => Defaults::sanitize_orderby( $atts['orderby'] ?? Defaults::SETTINGS['orderby'] ),
+			'pagination'         => ! empty( $atts['pagination'] ) ? 'yes' : 'no',
+			'posts'              => absint( $atts['posts'] ?? 0 ),
+			'posts_per_page'     => absint( $atts['posts'] ?? 0 ),
 		);
 	}
 
