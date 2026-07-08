@@ -1,5 +1,17 @@
 # Changelog
 
+## v1.0.0-rc.1
+
+### Added
+- AJAX blog pagination, category filters, and search with non-JS fallbacks.
+- Blog SEO improvements including card labels, image alt fallbacks, and JSON-LD.
+- Safe transient caching for public blog output with post-change invalidation.
+- Admin settings import/export tools.
+
+### Changed
+- Hardened admin settings validation, bounds, nonces, and capability checks.
+- Cleaned release-candidate bootstrap and lifecycle formatting.
+
 ## v0.7.3
 
 ### Fixed

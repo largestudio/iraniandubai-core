@@ -6,6 +6,7 @@
  */
 
 namespace IDB\Core;
+
 use IDB\Admin\Settings;
 use IDB\Blog\Shortcode;
 use IDB\Elementor\Manager as ElementorManager;
@@ -262,19 +263,17 @@ final class Plugin {
 		);
 	}
 
-/**
- * Register plugin modules.
- *
- * @return ModuleInterface[]
- */
-private function modules(): array {
-
-	return array(
-    new Settings(),
-    new Shortcode(),
-    new ElementorManager(),
-    );
-
-}
+	/**
+	 * Register plugin modules.
+	 *
+	 * @return ModuleInterface[]
+	 */
+	private function modules(): array {
+		return array(
+			new Settings(),
+			new Shortcode(),
+			new ElementorManager(),
+		);
+	}
 
 }
