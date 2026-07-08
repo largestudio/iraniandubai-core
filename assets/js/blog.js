@@ -3,6 +3,7 @@
 
 	var config = window.idbCoreBlog || {};
 	var attributesCache = new WeakMap();
+	var pendingScrollFrame = 0;
 
 	if (!config.ajaxUrl || !config.action || !config.nonce) {
 		return;
@@ -77,6 +78,65 @@
 		return nextBlog;
 	}
 
+	function getFixedHeaderOffset() {
+		var offset = 0;
+		var headers = document.querySelectorAll('#wpadminbar, .site-header, .elementor-location-header, header');
+
+		headers.forEach(function (header) {
+			var styles = window.getComputedStyle(header);
+			var rect = header.getBoundingClientRect();
+
+			if (
+				rect.height <= 0 ||
+				rect.bottom <= offset ||
+				rect.top > offset + 1 ||
+				(styles.position !== 'fixed' && styles.position !== 'sticky')
+			) {
+				return;
+			}
+
+			offset = Math.max(offset, rect.bottom);
+		});
+
+		return Math.ceil(offset) + 20;
+	}
+
+	function isBlogVisible(blog, offset) {
+		var rect = blog.getBoundingClientRect();
+
+		return rect.top >= offset && rect.bottom <= window.innerHeight;
+	}
+
+	function scrollToBlog(blog) {
+		if (!blog || !blog.isConnected) {
+			return;
+		}
+
+		var offset = getFixedHeaderOffset();
+		var rect = blog.getBoundingClientRect();
+		var top = Math.max(window.pageYOffset + rect.top - offset, 0);
+
+		if (isBlogVisible(blog, offset) || Math.abs(window.pageYOffset - top) < 2) {
+			return;
+		}
+
+		window.scrollTo({
+			behavior: 'smooth',
+			top: top,
+		});
+	}
+
+	function scheduleBlogScroll(blog) {
+		if (pendingScrollFrame) {
+			window.cancelAnimationFrame(pendingScrollFrame);
+		}
+
+		pendingScrollFrame = window.requestAnimationFrame(function () {
+			pendingScrollFrame = 0;
+			scrollToBlog(blog);
+		});
+	}
+
 	function getFormUrl(form) {
 		var url = new URL(form.action || window.location.href, window.location.href);
 		var data = new FormData(form);
@@ -97,7 +157,7 @@
 		return url.toString();
 	}
 
-	function loadBlog(blog, url, shouldPushState) {
+	function loadBlog(blog, url, shouldPushState, shouldScroll) {
 		if (!blog || blog.dataset.idbBlogLoading === '1') {
 			return Promise.resolve(null);
 		}
@@ -133,6 +193,10 @@
 
 				var nextBlog = replaceBlog(blog, payload.data.html);
 
+				if (nextBlog && shouldScroll) {
+					scheduleBlogScroll(nextBlog);
+				}
+
 				if (nextBlog && shouldPushState) {
 					window.history.pushState({ idbBlog: true }, '', url);
 				}
@@ -165,7 +229,7 @@
 			return;
 		}
 
-		loadBlog(blog, link.href, true);
+		loadBlog(blog, link.href, true, true);
 	});
 
 	document.addEventListener('submit', function (event) {
@@ -182,12 +246,12 @@
 			return;
 		}
 
-		loadBlog(blog, getFormUrl(form), true);
+		loadBlog(blog, getFormUrl(form), true, true);
 	});
 
 	window.addEventListener('popstate', function () {
 		document.querySelectorAll('[data-idb-blog]').forEach(function (blog) {
-			loadBlog(blog, window.location.href, false);
+			loadBlog(blog, window.location.href, false, false);
 		});
 	});
 })();
