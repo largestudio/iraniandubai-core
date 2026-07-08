@@ -10,3 +10,4 @@ if ( ! defined( 'WP_UNINSTALL_PLUGIN' ) ) {
 }
 
 delete_option( 'idb_core_options' );
+delete_option( 'idb_core_blog_cache_version' );

@@ -165,7 +165,7 @@ final class Settings implements ModuleInterface {
 		}
 
 		nocache_headers();
-		header( 'Content-Type: application/json; charset=' . get_option( 'blog_charset' ) );
+		header( 'Content-Type: application/json; charset=' . $this->get_blog_charset() );
 		header(
 			'Content-Disposition: attachment; filename=iraniandubai-core-settings-' . gmdate( 'Y-m-d' ) . '.json'
 		);
@@ -515,6 +515,18 @@ final class Settings implements ModuleInterface {
 			<p><?php echo esc_html( $message ); ?></p>
 		</div>
 		<?php
+	}
+
+	/**
+	 * Get a safe charset value for export headers.
+	 *
+	 * @return string
+	 */
+	private function get_blog_charset(): string {
+		$charset = (string) get_option( 'blog_charset', 'UTF-8' );
+		$charset = preg_replace( '/[^A-Za-z0-9_-]/', '', $charset );
+
+		return is_string( $charset ) && '' !== $charset ? $charset : 'UTF-8';
 	}
 
 }
