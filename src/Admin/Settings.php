@@ -9,15 +9,22 @@
 namespace IDB\Admin;
 
 use IDB\Blog\Defaults;
+use IDB\Core\ModuleInterface;
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-final class Settings {
+/**
+ * Registers and renders plugin settings.
+ */
+final class Settings implements ModuleInterface {
+	private const PAGE_SLUG    = 'idb-core';
+	private const NONCE_ACTION = 'idb_save_settings';
+	private const NONCE_NAME   = 'idb_nonce';
 
 	/**
-	 * Option Name
+	 * Option name.
 	 *
 	 * @var string
 	 */
@@ -29,7 +36,6 @@ final class Settings {
 	 * @return void
 	 */
 	public function register(): void {
-
 		add_action(
 			'admin_menu',
 			array(
@@ -42,10 +48,9 @@ final class Settings {
 			'admin_init',
 			array(
 				$this,
-				'save',
+				'save_settings',
 			)
 		);
-
 	}
 
 	/**
@@ -54,12 +59,11 @@ final class Settings {
 	 * @return void
 	 */
 	public function menu(): void {
-
 		add_menu_page(
-			'IranianDubai',
-			'IranianDubai',
+			__( 'IranianDubai Core', 'iraniandubai-core' ),
+			__( 'IranianDubai', 'iraniandubai-core' ),
 			'manage_options',
-			'idb-core',
+			self::PAGE_SLUG,
 			array(
 				$this,
 				'page',
@@ -67,7 +71,6 @@ final class Settings {
 			'dashicons-layout',
 			58
 		);
-
 	}
 
 	/**
@@ -75,8 +78,7 @@ final class Settings {
 	 *
 	 * @return void
 	 */
-	public function save(): void {
-
+	public function save_settings(): void {
 		if ( empty( $_POST['idb_save_settings'] ) ) {
 			return;
 		}
@@ -86,17 +88,11 @@ final class Settings {
 		}
 
 		check_admin_referer(
-			'idb_save_settings',
-			'idb_nonce'
+			self::NONCE_ACTION,
+			self::NONCE_NAME
 		);
 
-		$options = Defaults::sanitize(
-			array(
-				'posts_per_page' => $_POST['posts_per_page'] ?? Defaults::SETTINGS['posts_per_page'],
-				'excerpt_length' => $_POST['excerpt_length'] ?? Defaults::SETTINGS['excerpt_length'],
-				'columns'        => $_POST['columns'] ?? Defaults::SETTINGS['columns'],
-			)
-		);
+		$options = $this->sanitize_posted_options();
 
 		update_option(
 			$this->option_name,
@@ -104,31 +100,26 @@ final class Settings {
 		);
 
 		wp_safe_redirect(
-
 			add_query_arg(
 				'saved',
 				'1',
 				menu_page_url(
-					'idb-core',
+					self::PAGE_SLUG,
 					false
 				)
 			)
-
 		);
 
 		exit;
-
 	}
 
 	/**
 	 * Plugin Options.
 	 *
-	 * @return array
+	 * @return array{posts_per_page:int,excerpt_length:int,columns:int}
 	 */
 	private function options(): array {
-
 		return Defaults::settings();
-
 	}
 
 	/**
@@ -137,137 +128,124 @@ final class Settings {
 	 * @return void
 	 */
 	public function page(): void {
+		if ( ! current_user_can( 'manage_options' ) ) {
+			wp_die( esc_html__( 'You do not have permission to access this page.', 'iraniandubai-core' ) );
+		}
 
 		$options = $this->options();
 		?>
-				<div class="wrap">
+		<div class="wrap">
 
-			<h1>IranianDubai Core</h1>
+			<h1><?php esc_html_e( 'IranianDubai Core', 'iraniandubai-core' ); ?></h1>
 
-			<?php if ( isset( $_GET['saved'] ) ) : ?>
+			<?php if ( isset( $_GET['saved'] ) && '1' === sanitize_text_field( wp_unslash( $_GET['saved'] ) ) ) : ?>
 
 				<div class="notice notice-success is-dismissible">
-
-					<p>
-
-						Settings saved successfully.
-
-					</p>
-
+					<p><?php esc_html_e( 'Settings saved successfully.', 'iraniandubai-core' ); ?></p>
 				</div>
 
 			<?php endif; ?>
 
 			<form method="post">
 
-				<?php wp_nonce_field( 'idb_save_settings', 'idb_nonce' ); ?>
+				<?php wp_nonce_field( self::NONCE_ACTION, self::NONCE_NAME ); ?>
 
 				<table class="form-table">
 
 					<tr>
-
 						<th scope="row">
-
 							<label for="posts_per_page">
-
-								Posts Per Page
-
+								<?php esc_html_e( 'Posts per page', 'iraniandubai-core' ); ?>
 							</label>
-
 						</th>
-
 						<td>
-
 							<input
 								id="posts_per_page"
 								type="number"
 								name="posts_per_page"
 								value="<?php echo esc_attr( $options['posts_per_page'] ); ?>"
-								min="1"
-								max="48"
+								min="<?php echo esc_attr( (string) Defaults::POSTS_PER_PAGE_MIN ); ?>"
+								max="<?php echo esc_attr( (string) Defaults::POSTS_PER_PAGE_MAX ); ?>"
+								step="1"
 								class="small-text"
 							/>
-
+							<p class="description">
+								<?php
+								printf(
+									/* translators: 1: Minimum value. 2: Maximum value. */
+									esc_html__( 'Allowed range: %1$d-%2$d posts.', 'iraniandubai-core' ),
+									absint( Defaults::POSTS_PER_PAGE_MIN ),
+									absint( Defaults::POSTS_PER_PAGE_MAX )
+								);
+								?>
+							</p>
 						</td>
-
 					</tr>
 
 					<tr>
-
 						<th scope="row">
-
 							<label for="excerpt_length">
-
-								Excerpt Length
-
+								<?php esc_html_e( 'Excerpt length', 'iraniandubai-core' ); ?>
 							</label>
-
 						</th>
-
 						<td>
-
 							<input
 								id="excerpt_length"
 								type="number"
 								name="excerpt_length"
 								value="<?php echo esc_attr( $options['excerpt_length'] ); ?>"
-								min="5"
-								max="100"
+								min="<?php echo esc_attr( (string) Defaults::EXCERPT_LENGTH_MIN ); ?>"
+								max="<?php echo esc_attr( (string) Defaults::EXCERPT_LENGTH_MAX ); ?>"
+								step="1"
 								class="small-text"
 							/>
-
+							<p class="description">
+								<?php
+								printf(
+									/* translators: 1: Minimum value. 2: Maximum value. */
+									esc_html__( 'Allowed range: %1$d-%2$d words.', 'iraniandubai-core' ),
+									absint( Defaults::EXCERPT_LENGTH_MIN ),
+									absint( Defaults::EXCERPT_LENGTH_MAX )
+								);
+								?>
+							</p>
 						</td>
-
 					</tr>
 
 					<tr>
-
 						<th scope="row">
-
 							<label for="columns">
-
-								Default Columns
-
+								<?php esc_html_e( 'Default columns', 'iraniandubai-core' ); ?>
 							</label>
-
 						</th>
-
 						<td>
-
 							<select
 								id="columns"
 								name="columns"
 							>
-
-								<option value="1" <?php selected( $options['columns'], 1 ); ?>>1</option>
-
-								<option value="2" <?php selected( $options['columns'], 2 ); ?>>2</option>
-
-								<option value="3" <?php selected( $options['columns'], 3 ); ?>>3</option>
-
-								<option value="4" <?php selected( $options['columns'], 4 ); ?>>4</option>
-
+								<?php for ( $columns = Defaults::COLUMNS_MIN; $columns <= Defaults::COLUMNS_MAX; ++$columns ) : ?>
+									<option value="<?php echo esc_attr( (string) $columns ); ?>" <?php selected( $options['columns'], $columns ); ?>>
+										<?php echo esc_html( (string) $columns ); ?>
+									</option>
+								<?php endfor; ?>
 							</select>
-
+							<p class="description">
+								<?php esc_html_e( 'Used when a shortcode or Elementor widget does not set its own column count.', 'iraniandubai-core' ); ?>
+							</p>
 						</td>
-
 					</tr>
 
 				</table>
 
 				<p>
-
 					<button
 						type="submit"
 						name="idb_save_settings"
 						value="1"
 						class="button button-primary"
 					>
-
-						Save Changes
-
+						<?php esc_html_e( 'Save Changes', 'iraniandubai-core' ); ?>
 					</button>
-
 				</p>
 
 			</form>
@@ -276,6 +254,27 @@ final class Settings {
 
 		<?php
 
+	}
+
+	/**
+	 * Read and sanitize submitted settings.
+	 *
+	 * @return array{posts_per_page:int,excerpt_length:int,columns:int}
+	 */
+	private function sanitize_posted_options(): array {
+		$posted = array(
+			'posts_per_page' => Defaults::SETTINGS['posts_per_page'],
+			'excerpt_length' => Defaults::SETTINGS['excerpt_length'],
+			'columns'        => Defaults::SETTINGS['columns'],
+		);
+
+		foreach ( array_keys( $posted ) as $key ) {
+			if ( isset( $_POST[ $key ] ) ) {
+				$posted[ $key ] = wp_unslash( $_POST[ $key ] );
+			}
+		}
+
+		return Defaults::sanitize( $posted );
 	}
 
 }
