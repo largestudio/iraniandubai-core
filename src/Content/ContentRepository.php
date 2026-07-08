@@ -17,11 +17,27 @@ if ( ! defined( 'ABSPATH' ) ) {
 final class ContentRepository {
 
 	/**
+	 * Content factory.
+	 *
+	 * @var ContentFactory
+	 */
+	private ContentFactory $factory;
+
+	/**
 	 * Registered content entries.
 	 *
 	 * @var array<string,array{id:string,label:string,callback:callable|null,meta:array<string,mixed>}>
 	 */
 	private array $items = array();
+
+	/**
+	 * Constructor.
+	 *
+	 * @param ContentFactory|null $factory Optional content factory.
+	 */
+	public function __construct( ?ContentFactory $factory = null ) {
+		$this->factory = $factory ?? new ContentFactory();
+	}
 
 	/**
 	 * Register a future content entry.
@@ -81,12 +97,44 @@ final class ContentRepository {
 	}
 
 	/**
+	 * Get one registered content entry as a Content entity.
+	 *
+	 * @param string $id Content identifier.
+	 *
+	 * @return Content|null
+	 */
+	public function get_entity( string $id ): ?Content {
+		$item = $this->get( $id );
+
+		return null !== $item ? $this->make_entity( $item ) : null;
+	}
+
+	/**
 	 * Get all registered content entries.
 	 *
 	 * @return array<string,array{id:string,label:string,callback:callable|null,meta:array<string,mixed>}>
 	 */
 	public function all(): array {
 		return $this->items;
+	}
+
+	/**
+	 * Get all registered content entries as Content entities.
+	 *
+	 * @return array<string,Content>
+	 */
+	public function all_entities(): array {
+		$entities = array();
+
+		foreach ( $this->items as $id => $item ) {
+			$entity = $this->make_entity( $item );
+
+			if ( null !== $entity ) {
+				$entities[ $id ] = $entity;
+			}
+		}
+
+		return $entities;
 	}
 
 	/**
@@ -106,6 +154,38 @@ final class ContentRepository {
 		unset( $this->items[ $id ] );
 
 		return true;
+	}
+
+	/**
+	 * Get the content factory.
+	 *
+	 * @return ContentFactory
+	 */
+	public function get_factory(): ContentFactory {
+		return $this->factory;
+	}
+
+	/**
+	 * Create a Content entity from a registered item.
+	 *
+	 * @param array{id:string,label:string,callback:callable|null,meta:array<string,mixed>} $item Registered item.
+	 *
+	 * @return Content|null
+	 */
+	private function make_entity( array $item ): ?Content {
+		$meta = $item['meta'];
+
+		$data = array(
+			'id'         => $item['id'],
+			'type'       => isset( $meta['type'] ) && is_scalar( $meta['type'] ) ? (string) $meta['type'] : 'generic',
+			'title'      => isset( $meta['title'] ) && is_scalar( $meta['title'] ) ? (string) $meta['title'] : $item['label'],
+			'status'     => isset( $meta['status'] ) && is_scalar( $meta['status'] ) ? (string) $meta['status'] : 'draft',
+			'priority'   => isset( $meta['priority'] ) ? (int) $meta['priority'] : 10,
+			'meta'       => $meta,
+			'conditions' => isset( $meta['conditions'] ) && is_array( $meta['conditions'] ) ? $meta['conditions'] : array(),
+		);
+
+		return $this->factory->from_array( $data );
 	}
 
 	/**
