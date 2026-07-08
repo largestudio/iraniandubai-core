@@ -21,6 +21,8 @@ final class BlogRenderer {
 	private const CATEGORY_QUERY_VAR = 'idb_category';
 	private const SEARCH_QUERY_VAR   = 'idb_search';
 	private const AJAX_ACTION        = 'idb_core_blog';
+	private const CACHE_VERSION_KEY  = 'idb_core_blog_cache_version';
+	private const CACHE_TTL          = 900;
 	private const NONCE_ACTION       = 'idb_core_blog';
 	private const SCRIPT_OBJECT      = 'idbCoreBlog';
 
@@ -81,9 +83,19 @@ final class BlogRenderer {
 	 * @return string
 	 */
 	public function render( array $atts ): string {
-		$query = $this->get_query( $atts );
-
 		$this->enqueue_assets();
+
+		$cache_key = $this->get_cache_key( $atts );
+
+		if ( '' !== $cache_key ) {
+			$cached = get_transient( $cache_key );
+
+			if ( is_string( $cached ) ) {
+				return $cached;
+			}
+		}
+
+		$query = $this->get_query( $atts );
 
 		ob_start();
 
@@ -99,7 +111,13 @@ final class BlogRenderer {
 
 		wp_reset_postdata();
 
-		return (string) ob_get_clean();
+		$output = (string) ob_get_clean();
+
+		if ( '' !== $cache_key && '' !== $output ) {
+			set_transient( $cache_key, $output, self::CACHE_TTL );
+		}
+
+		return $output;
 	}
 
 	/**
@@ -144,6 +162,15 @@ final class BlogRenderer {
 				'url'  => $url,
 			)
 		);
+	}
+
+	/**
+	 * Invalidate cached blog renderer output.
+	 *
+	 * @return void
+	 */
+	public static function flush_cache( mixed ...$args ): void {
+		update_option( self::CACHE_VERSION_KEY, (string) time(), false );
 	}
 
 	/**
@@ -241,12 +268,25 @@ final class BlogRenderer {
 	 * @return string
 	 */
 	public function get_image( int $post_id, bool $is_priority = false ): string {
-		if ( ! has_post_thumbnail( $post_id ) ) {
+		$thumbnail_id = get_post_thumbnail_id( $post_id );
+
+		if ( ! $thumbnail_id ) {
 			return '<span class="idb-blog-card__image idb-blog-card__image--placeholder" aria-hidden="true"></span>';
+		}
+
+		$alt = trim( (string) get_post_meta( $thumbnail_id, '_wp_attachment_image_alt', true ) );
+
+		if ( '' === $alt ) {
+			$alt = get_the_title( $post_id );
+		}
+
+		if ( '' === $alt ) {
+			$alt = __( 'Blog post image', 'iraniandubai-core' );
 		}
 
 		$attributes = array(
 			'class'    => 'idb-blog-card__image',
+			'alt'      => $alt,
 			'loading'  => $is_priority ? 'eager' : 'lazy',
 			'decoding' => 'async',
 			'sizes'    => '(min-width: 1024px) 50vw, 100vw',
@@ -261,6 +301,74 @@ final class BlogRenderer {
 			'large',
 			$attributes
 		);
+	}
+
+	/**
+	 * Render Schema.org JSON-LD for the current blog listing.
+	 *
+	 * @param \WP_Query $query Blog posts query.
+	 *
+	 * @return string
+	 */
+	public function get_schema( \WP_Query $query ): string {
+		if ( empty( $query->posts ) ) {
+			return '';
+		}
+
+		$items    = array();
+		$position = 1;
+
+		foreach ( $query->posts as $post ) {
+			if ( ! $post instanceof \WP_Post ) {
+				continue;
+			}
+
+			$post_schema = array(
+				'@type'         => 'BlogPosting',
+				'headline'      => get_the_title( $post ),
+				'url'           => get_permalink( $post ),
+				'datePublished' => get_post_time( DATE_W3C, true, $post ),
+				'dateModified'  => get_post_modified_time( DATE_W3C, true, $post ),
+			);
+
+			$image = get_the_post_thumbnail_url( $post, 'large' );
+
+			if ( is_string( $image ) && '' !== $image ) {
+				$post_schema['image'] = $image;
+			}
+
+			$items[] = array(
+				'@type'    => 'ListItem',
+				'position' => $position,
+				'item'     => $post_schema,
+			);
+
+			++$position;
+		}
+
+		if ( empty( $items ) ) {
+			return '';
+		}
+
+		$schema = wp_json_encode(
+			array(
+				'@context'        => 'https://schema.org',
+				'@type'           => 'ItemList',
+				'itemListElement' => $items,
+			),
+			JSON_HEX_TAG
+			| JSON_HEX_AMP
+			| JSON_HEX_APOS
+			| JSON_HEX_QUOT
+			| JSON_UNESCAPED_SLASHES
+			| JSON_UNESCAPED_UNICODE
+		);
+
+		if ( ! is_string( $schema ) ) {
+			return '';
+		}
+
+		return '<script type="application/ld+json">' . $schema . '</script>';
 	}
 
 	/**
@@ -619,6 +727,69 @@ final class BlogRenderer {
 				'nonce'   => wp_create_nonce( self::NONCE_ACTION ),
 			)
 		);
+	}
+
+	/**
+	 * Build a safe transient cache key for public blog output.
+	 *
+	 * @param array<string,mixed> $atts Shortcode attributes.
+	 *
+	 * @return string
+	 */
+	private function get_cache_key( array $atts ): string {
+		if ( ! $this->can_cache_render() ) {
+			return '';
+		}
+
+		$cache_parts = array(
+			'version'  => $this->get_cache_version(),
+			'plugin'   => IDB_CORE_VERSION,
+			'locale'   => determine_locale(),
+			'rtl'      => is_rtl(),
+			'base_url' => $this->get_frontend_base_url(),
+			'category' => $this->get_requested_category(),
+			'search'   => $this->get_requested_search(),
+			'paged'    => $this->get_current_page( $atts ),
+			'atts'     => $this->normalize_atts( $atts ),
+		);
+
+		return 'idb_blog_' . md5( (string) wp_json_encode( $cache_parts ) );
+	}
+
+	/**
+	 * Check whether the current request is safe to cache.
+	 *
+	 * @return bool
+	 */
+	private function can_cache_render(): bool {
+		if ( is_user_logged_in() ) {
+			return false;
+		}
+
+		if ( is_admin() && ! wp_doing_ajax() ) {
+			return false;
+		}
+
+		if ( is_preview() ) {
+			return false;
+		}
+
+		if ( function_exists( 'is_customize_preview' ) && is_customize_preview() ) {
+			return false;
+		}
+
+		return true;
+	}
+
+	/**
+	 * Get the current blog cache version.
+	 *
+	 * @return string
+	 */
+	private function get_cache_version(): string {
+		$version = get_option( self::CACHE_VERSION_KEY, '1' );
+
+		return is_scalar( $version ) ? (string) $version : '1';
 	}
 
 	/**

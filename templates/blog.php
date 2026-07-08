@@ -82,14 +82,24 @@ $search_id         = wp_unique_id( 'idb-blog-search-' );
 				$blog_query->the_post();
 
 				$post_id      = get_the_ID();
+				$post_title   = get_the_title();
+				$title_id     = 'idb-blog-card-title-' . $post_id;
 				$permalink    = get_permalink( $post_id );
 				$category     = $blog_renderer->get_category( $post_id );
 				$reading_time = $blog_renderer->get_read_time( $post_id );
 				$is_priority  = 0 === $blog_index;
 				++$blog_index;
 				?>
-				<article <?php post_class( 'idb-blog-card' ); ?>>
-					<a class="idb-blog-card__media" href="<?php echo esc_url( $permalink ); ?>" aria-label="<?php echo esc_attr( get_the_title() ); ?>">
+				<article <?php post_class( 'idb-blog-card' ); ?> aria-labelledby="<?php echo esc_attr( $title_id ); ?>">
+					<a
+						class="idb-blog-card__media"
+						href="<?php echo esc_url( $permalink ); ?>"
+						aria-label="<?php echo esc_attr( sprintf(
+							/* translators: %s: Post title. */
+							__( 'Read %s', 'iraniandubai-core' ),
+							$post_title
+						) ); ?>"
+					>
 						<?php echo wp_kses_post( $blog_renderer->get_image( $post_id, $is_priority ) ); ?>
 					</a>
 
@@ -112,9 +122,9 @@ $search_id         = wp_unique_id( 'idb-blog-search-' );
 							</span>
 						</div>
 
-						<h2 class="idb-blog-card__title">
+						<h2 id="<?php echo esc_attr( $title_id ); ?>" class="idb-blog-card__title">
 							<a href="<?php echo esc_url( $permalink ); ?>">
-								<?php echo esc_html( get_the_title() ); ?>
+								<?php echo esc_html( $post_title ); ?>
 							</a>
 						</h2>
 
@@ -129,7 +139,15 @@ $search_id         = wp_unique_id( 'idb-blog-search-' );
 								<?php echo esc_html( get_the_date() ); ?>
 							</time>
 
-							<a class="idb-blog-card__button" href="<?php echo esc_url( $permalink ); ?>">
+							<a
+								class="idb-blog-card__button"
+								href="<?php echo esc_url( $permalink ); ?>"
+								aria-label="<?php echo esc_attr( sprintf(
+									/* translators: %s: Post title. */
+									__( 'Continue reading %s', 'iraniandubai-core' ),
+									$post_title
+								) ); ?>"
+							>
 								<?php echo esc_html( html_entity_decode( '&#1575;&#1583;&#1575;&#1605;&#1607; &#1605;&#1591;&#1604;&#1576;', ENT_QUOTES, 'UTF-8' ) ); ?>
 							</a>
 						</footer>
@@ -174,6 +192,11 @@ $search_id         = wp_unique_id( 'idb-blog-search-' );
 				?>
 			</nav>
 		<?php endif; ?>
+
+		<?php
+		// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- BlogRenderer returns escaped JSON-LD script markup.
+		echo $blog_renderer->get_schema( $blog_query );
+		?>
 	<?php else : ?>
 		<p class="idb-blog__empty"><?php esc_html_e( 'No posts found.', 'iraniandubai-core' ); ?></p>
 	<?php endif; ?>

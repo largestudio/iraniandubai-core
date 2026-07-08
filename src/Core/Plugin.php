@@ -167,6 +167,30 @@ final class Plugin {
 			)
 		);
 
+		add_action(
+			'save_post',
+			array(
+				BlogRenderer::class,
+				'flush_cache',
+			)
+		);
+
+		add_action(
+			'deleted_post',
+			array(
+				BlogRenderer::class,
+				'flush_cache',
+			)
+		);
+
+		add_action(
+			'transition_post_status',
+			array(
+				BlogRenderer::class,
+				'flush_cache',
+			)
+		);
+
 		foreach ( $this->modules() as $module ) {
 			$module->register();
 		}
