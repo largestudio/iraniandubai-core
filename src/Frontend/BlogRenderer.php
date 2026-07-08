@@ -290,8 +290,7 @@ final class BlogRenderer {
 			return get_the_date( '', $post_id );
 		}
 
-		$format = get_option( 'date_format' );
-		$format = is_string( $format ) && '' !== $format ? $format : 'Y/m/d';
+		$format = 'Y/m/d';
 
 		foreach ( array( 'jdate', 'parsidate', 'gregorian_to_jalali' ) as $function_name ) {
 			if ( function_exists( $function_name ) ) {
@@ -300,6 +299,15 @@ final class BlogRenderer {
 		}
 
 		return $this->format_jalali_date( $format, $timestamp );
+	}
+
+	/**
+	 * Get text direction for the displayed post date.
+	 *
+	 * @return string
+	 */
+	public function get_display_date_direction(): string {
+		return $this->is_persian_locale() ? 'ltr' : 'auto';
 	}
 
 	/**
@@ -771,7 +779,7 @@ final class BlogRenderer {
 	 * @return bool
 	 */
 	private function is_persian_locale(): bool {
-		return str_starts_with( determine_locale(), 'fa' );
+		return str_starts_with( get_locale(), 'fa' ) || str_starts_with( determine_locale(), 'fa' );
 	}
 
 	/**

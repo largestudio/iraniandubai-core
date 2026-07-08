@@ -55,6 +55,93 @@ final class Settings implements ModuleInterface {
 				'handle_settings_actions',
 			)
 		);
+
+		add_filter(
+			'gettext',
+			array(
+				$this,
+				'translate_admin_text',
+			),
+			10,
+			3
+		);
+	}
+
+	/**
+	 * Provide immediate Persian admin translations when language files are unavailable.
+	 *
+	 * @param string $translation Translated text.
+	 * @param string $text        Original text.
+	 * @param string $domain      Text domain.
+	 *
+	 * @return string
+	 */
+	public function translate_admin_text( string $translation, string $text, string $domain ): string {
+		if ( 'iraniandubai-core' !== $domain || ! is_admin() || ! $this->is_persian_locale() ) {
+			return $translation;
+		}
+
+		$translations = array(
+			'IranianDubai Core' => 'هسته ایرانیان دبی',
+			'IranianDubai' => 'ایرانیان دبی',
+			'You do not have permission to access this page.' => 'شما اجازه دسترسی به این صفحه را ندارید.',
+			'Settings saved successfully.' => 'تنظیمات با موفقیت ذخیره شد.',
+			'General Settings' => 'تنظیمات عمومی',
+			'Use these defaults when a shortcode or Elementor widget does not provide its own blog display values.' => 'وقتی شورت‌کد یا ابزارک المنتور مقدار اختصاصی برای نمایش بلاگ ندارد، از این پیش‌فرض‌ها استفاده می‌شود.',
+			'Blog Settings' => 'تنظیمات بلاگ',
+			'Posts Per Page' => 'تعداد نوشته در هر صفحه',
+			'Number of posts displayed on each page. Allowed range: %1$d-%2$d posts.' => 'تعداد نوشته‌هایی که در هر صفحه نمایش داده می‌شود. بازه مجاز: %1$d تا %2$d نوشته.',
+			'Display Settings' => 'تنظیمات نمایش',
+			'Columns' => 'ستون‌ها',
+			'Desktop columns for the blog grid when no shortcode or Elementor column value is set.' => 'تعداد ستون‌های دسکتاپ برای شبکه بلاگ، وقتی مقدار ستون در شورت‌کد یا المنتور تنظیم نشده باشد.',
+			'Excerpt Length' => 'طول خلاصه',
+			'Maximum words shown before Read More. Allowed range: %1$d-%2$d words.' => 'حداکثر تعداد کلمات پیش از ادامه مطلب. بازه مجاز: %1$d تا %2$d کلمه.',
+			'Save Changes' => 'ذخیره تغییرات',
+			'Shortcode' => 'شورت‌کد',
+			'Basic Shortcode' => 'شورت‌کد اصلی',
+			'Example' => 'نمونه',
+			'Attribute' => 'ویژگی',
+			'Default' => 'پیش‌فرض',
+			'Description' => 'توضیح',
+			'Elementor Help' => 'راهنمای المنتور',
+			'Location' => 'محل نمایش',
+			'Elementor editor, General widget category.' => 'ویرایشگر المنتور، دسته ابزارک‌های عمومی.',
+			'Widget Name' => 'نام ابزارک',
+			'IranianDubai Blog' => 'بلاگ ایرانیان دبی',
+			'Required Settings' => 'تنظیمات ضروری',
+			'No required settings. The widget uses the saved defaults until its controls are customized.' => 'تنظیم ضروری ندارد. ابزارک تا زمانی که کنترل‌های آن تغییر نکنند، از پیش‌فرض‌های ذخیره‌شده استفاده می‌کند.',
+			'Example Usage' => 'نمونه استفاده',
+			'Add IranianDubai Blog to a page, then adjust Posts, Columns, Category, Order, Excerpt, and Pagination in the Content tab.' => 'ابزارک بلاگ ایرانیان دبی را به صفحه اضافه کنید، سپس نوشته‌ها، ستون‌ها، دسته، ترتیب، خلاصه و صفحه‌بندی را در تب محتوا تنظیم کنید.',
+			'Import / Export Settings' => 'درون‌ریزی / برون‌بری تنظیمات',
+			'Export Settings' => 'برون‌بری تنظیمات',
+			'Export only IranianDubai Core plugin settings as a JSON file.' => 'فقط تنظیمات افزونه هسته ایرانیان دبی را به‌صورت فایل JSON برون‌بری می‌کند.',
+			'Import Settings' => 'درون‌ریزی تنظیمات',
+			'Import settings JSON' => 'JSON تنظیمات برای درون‌ریزی',
+			'Paste a JSON export from IranianDubai Core. Imported values are validated and clamped to the allowed settings ranges.' => 'خروجی JSON هسته ایرانیان دبی را وارد کنید. مقدارهای درون‌ریزی‌شده اعتبارسنجی می‌شوند و در بازه مجاز تنظیمات قرار می‌گیرند.',
+			'About' => 'درباره',
+			'Plugin' => 'افزونه',
+			'Version' => 'نسخه',
+			'Purpose' => 'هدف',
+			'Core blog, shortcode, Elementor, and settings tools for the IranianDubai website.' => 'ابزارهای اصلی بلاگ، شورت‌کد، المنتور و تنظیمات برای وب‌سایت ایرانیان دبی.',
+			'All categories' => 'همه دسته‌ها',
+			'Category slug or ID to show posts from one category.' => 'نامک یا شناسه دسته برای نمایش نوشته‌های یک دسته.',
+			'Saved display setting' => 'تنظیم نمایش ذخیره‌شده',
+			'Desktop columns for the blog grid.' => 'ستون‌های دسکتاپ برای شبکه بلاگ.',
+			'Maximum excerpt words shown before Read More.' => 'حداکثر کلمات خلاصه پیش از ادامه مطلب.',
+			'Post order. Supports ASC or DESC.' => 'ترتیب نوشته‌ها. از ASC یا DESC پشتیبانی می‌کند.',
+			'Sort field. Supports date, title, modified, menu_order, rand, comment_count, or ID.' => 'فیلد مرتب‌سازی. از date، title، modified، menu_order، rand، comment_count یا ID پشتیبانی می‌کند.',
+			'Enable or disable pagination.' => 'فعال یا غیرفعال کردن صفحه‌بندی.',
+			'Current pagination page for direct shortcode use.' => 'صفحه فعلی صفحه‌بندی برای استفاده مستقیم در شورت‌کد.',
+			'Saved blog setting' => 'تنظیم ذخیره‌شده بلاگ',
+			'Alternative post count attribute.' => 'ویژگی جایگزین برای تعداد نوشته‌ها.',
+			'Number of posts displayed on each page.' => 'تعداد نوشته‌هایی که در هر صفحه نمایش داده می‌شود.',
+			'Settings export failed. Please try again.' => 'برون‌بری تنظیمات ناموفق بود. لطفا دوباره تلاش کنید.',
+			'Import failed. Please paste a JSON settings export.' => 'درون‌ریزی ناموفق بود. لطفا خروجی JSON تنظیمات را وارد کنید.',
+			'Import failed. The JSON does not contain valid IranianDubai Core settings.' => 'درون‌ریزی ناموفق بود. JSON شامل تنظیمات معتبر هسته ایرانیان دبی نیست.',
+			'Settings imported successfully.' => 'تنظیمات با موفقیت درون‌ریزی شد.',
+		);
+
+		return $translations[ $text ] ?? $translation;
 	}
 
 	/**
@@ -677,6 +764,15 @@ final class Settings implements ModuleInterface {
 		$charset = preg_replace( '/[^A-Za-z0-9_-]/', '', $charset );
 
 		return is_string( $charset ) && '' !== $charset ? $charset : 'UTF-8';
+	}
+
+	/**
+	 * Check whether the active admin locale is Persian.
+	 *
+	 * @return bool
+	 */
+	private function is_persian_locale(): bool {
+		return str_starts_with( get_locale(), 'fa' ) || str_starts_with( determine_locale(), 'fa' );
 	}
 
 }

@@ -129,7 +129,12 @@ $search_id         = wp_unique_id( 'idb-blog-search-' );
 						<?php endif; ?>
 
 						<footer class="idb-blog-card__footer">
-							<time class="idb-blog-card__date" datetime="<?php echo esc_attr( get_post_time( DATE_W3C, true, $post_id ) ); ?>">
+							<time
+								class="idb-blog-card__date"
+								datetime="<?php echo esc_attr( get_post_time( DATE_W3C, true, $post_id ) ); ?>"
+								dir="<?php echo esc_attr( $blog_renderer->get_display_date_direction() ); ?>"
+								style="unicode-bidi: isolate;"
+							>
 								<?php echo esc_html( $blog_renderer->get_display_date( $post_id ) ); ?>
 							</time>
 
