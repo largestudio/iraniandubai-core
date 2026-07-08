@@ -29,14 +29,19 @@ $filter_categories = $blog_renderer->get_filter_categories( $blog_atts );
 $columns           = isset( $blog_atts['columns'] ) ? absint( $blog_atts['columns'] ) : 2;
 $excerpt_length    = isset( $blog_atts['excerpt'] ) ? absint( $blog_atts['excerpt'] ) : 24;
 $layout            = isset( $blog_atts['layout'] ) ? sanitize_html_class( (string) $blog_atts['layout'] ) : 'grid';
+$pagination_mode   = sanitize_html_class( $blog_renderer->get_pagination_mode( $blog_atts ) );
+$current_page      = isset( $blog_paged ) ? max( 1, absint( $blog_paged ) ) : $blog_renderer->get_current_page( $blog_atts );
+$has_next_page     = $current_page < (int) $blog_query->max_num_pages;
+$next_page_url     = $has_next_page ? $blog_renderer->get_page_url( $current_page + 1 ) : '';
 $ajax_atts         = $blog_renderer->get_ajax_attributes( $blog_atts );
 $search_id         = wp_unique_id( 'idb-blog-search-' );
 ?>
 
 <section
-	class="idb-blog idb-blog--layout-<?php echo esc_attr( $layout ); ?>"
+	class="idb-blog idb-blog--layout-<?php echo esc_attr( $layout ); ?> idb-blog--pagination-<?php echo esc_attr( $pagination_mode ); ?>"
 	data-idb-blog
 	data-idb-blog-atts="<?php echo esc_attr( $ajax_atts ); ?>"
+	data-idb-blog-pagination-mode="<?php echo esc_attr( $pagination_mode ); ?>"
 	aria-label="<?php esc_attr_e( 'Latest blog posts', 'iraniandubai-core' ); ?>"
 >
 	<?php if ( ! empty( $filter_categories ) ) : ?>
@@ -80,7 +85,7 @@ $search_id         = wp_unique_id( 'idb-blog-search-' );
 	</form>
 
 	<?php if ( $blog_query->have_posts() ) : ?>
-		<div class="idb-blog__grid idb-blog__grid--columns-<?php echo esc_attr( (string) $columns ); ?>">
+		<div class="idb-blog__grid idb-blog__grid--columns-<?php echo esc_attr( (string) $columns ); ?>" data-idb-blog-grid>
 			<?php
 			$blog_index = 0;
 
@@ -161,11 +166,10 @@ $search_id         = wp_unique_id( 'idb-blog-search-' );
 			<?php endwhile; ?>
 		</div>
 
-		<?php if ( $blog_renderer->has_pagination( $blog_atts ) && $blog_query->max_num_pages > 1 ) : ?>
+		<?php if ( $blog_renderer->has_pagination( $blog_atts ) && $blog_query->max_num_pages > 1 && 'pagination' === $pagination_mode ) : ?>
 			<nav class="idb-blog__pagination" aria-label="<?php esc_attr_e( 'Blog pagination', 'iraniandubai-core' ); ?>">
 				<?php
 				$big          = 999999999;
-				$current_page = isset( $blog_paged ) ? max( 1, absint( $blog_paged ) ) : $blog_renderer->get_current_page( $blog_atts );
 				$add_args     = array();
 
 				$pagination_args = array(
@@ -196,6 +200,30 @@ $search_id         = wp_unique_id( 'idb-blog-search-' );
 				}
 				?>
 			</nav>
+		<?php endif; ?>
+
+		<?php if ( $blog_renderer->has_pagination( $blog_atts ) && $has_next_page && 'load_more' === $pagination_mode ) : ?>
+			<div class="idb-blog__load-more">
+				<a
+					class="idb-blog__load-more-button"
+					href="<?php echo esc_url( $next_page_url ); ?>"
+					data-idb-blog-load-more
+				>
+					<?php echo esc_html( $blog_renderer->get_load_more_text() ); ?>
+				</a>
+			</div>
+		<?php endif; ?>
+
+		<?php if ( $blog_renderer->has_pagination( $blog_atts ) && $has_next_page && 'infinite_scroll' === $pagination_mode ) : ?>
+			<div class="idb-blog__infinite" data-idb-blog-infinite>
+				<a
+					class="idb-blog__infinite-link"
+					href="<?php echo esc_url( $next_page_url ); ?>"
+					data-idb-blog-infinite-link
+				>
+					<?php echo esc_html( $blog_renderer->get_load_more_text() ); ?>
+				</a>
+			</div>
 		<?php endif; ?>
 
 		<?php

@@ -80,6 +80,15 @@ final class Defaults {
 	);
 
 	/**
+	 * Supported frontend pagination modes.
+	 */
+	public const PAGINATION_MODES = array(
+		'pagination',
+		'load_more',
+		'infinite_scroll',
+	);
+
+	/**
 	 * Default blog settings.
 	 */
 	public const SETTINGS = array(
@@ -87,6 +96,7 @@ final class Defaults {
 		'excerpt_length'     => 24,
 		'columns'            => 2,
 		'layout'             => 'grid',
+		'pagination_mode'    => 'pagination',
 		'include_categories' => array(),
 		'exclude_categories' => array(),
 		'include_tags'       => array(),
@@ -138,6 +148,7 @@ final class Defaults {
 				self::COLUMNS_MAX
 			),
 			'layout'             => self::sanitize_layout( $settings['layout'] ?? self::SETTINGS['layout'] ),
+			'pagination_mode'    => self::sanitize_pagination_mode( $settings['pagination_mode'] ?? self::SETTINGS['pagination_mode'] ),
 			'include_categories' => self::sanitize_id_list( $settings['include_categories'] ?? self::SETTINGS['include_categories'] ),
 			'exclude_categories' => self::sanitize_id_list( $settings['exclude_categories'] ?? self::SETTINGS['exclude_categories'] ),
 			'include_tags'       => self::sanitize_id_list( $settings['include_tags'] ?? self::SETTINGS['include_tags'] ),
@@ -165,6 +176,19 @@ final class Defaults {
 		$layout = sanitize_key( (string) $layout );
 
 		return in_array( $layout, self::LAYOUTS, true ) ? $layout : self::SETTINGS['layout'];
+	}
+
+	/**
+	 * Sanitize frontend pagination mode.
+	 *
+	 * @param mixed $mode Raw pagination mode.
+	 *
+	 * @return string
+	 */
+	public static function sanitize_pagination_mode( mixed $mode ): string {
+		$mode = sanitize_key( (string) $mode );
+
+		return in_array( $mode, self::PAGINATION_MODES, true ) ? $mode : self::SETTINGS['pagination_mode'];
 	}
 
 	/**

@@ -273,6 +273,19 @@ final class BlogRenderer {
 	}
 
 	/**
+	 * Get localized load more button text.
+	 *
+	 * @return string
+	 */
+	public function get_load_more_text(): string {
+		if ( $this->is_persian_locale() ) {
+			return __( 'مشاهده مطالب بیشتر', 'iraniandubai-core' );
+		}
+
+		return __( 'Load More', 'iraniandubai-core' );
+	}
+
+	/**
 	 * Get localized display date for a post.
 	 *
 	 * @param int $post_id Post ID.
@@ -589,6 +602,42 @@ final class BlogRenderer {
 	}
 
 	/**
+	 * Get the active frontend pagination mode.
+	 *
+	 * @param array<string,mixed> $atts Shortcode attributes.
+	 *
+	 * @return string
+	 */
+	public function get_pagination_mode( array $atts ): string {
+		$normalized = $this->normalize_atts( $atts );
+
+		return $normalized['pagination_mode'];
+	}
+
+	/**
+	 * Build a direct URL for a blog page.
+	 *
+	 * @param int $page Page number.
+	 *
+	 * @return string
+	 */
+	public function get_page_url( int $page ): string {
+		$url      = add_query_arg( 'paged', max( 1, $page ), $this->get_frontend_base_url() );
+		$category = $this->get_requested_category();
+		$search   = $this->get_requested_search();
+
+		if ( '' !== $category ) {
+			$url = add_query_arg( self::CATEGORY_QUERY_VAR, $category, $url );
+		}
+
+		if ( '' !== $search ) {
+			$url = add_query_arg( self::SEARCH_QUERY_VAR, $search, $url );
+		}
+
+		return $url;
+	}
+
+	/**
 	 * Build a dedicated posts query.
 	 *
 	 * @param array<string,mixed> $atts Shortcode attributes.
@@ -672,6 +721,7 @@ final class BlogRenderer {
 		$columns = $this->get_int_attribute( $atts, 'columns', $options['columns'] );
 		$excerpt = $this->get_int_attribute( $atts, 'excerpt', $options['excerpt_length'] );
 		$layout  = Defaults::sanitize_layout( $options['layout'] );
+		$mode    = Defaults::sanitize_pagination_mode( $options['pagination_mode'] );
 		$order   = '' !== (string) ( $atts['order'] ?? '' ) ? Defaults::sanitize_order( $atts['order'] ) : $options['order'];
 		$orderby = '' !== (string) ( $atts['orderby'] ?? '' ) ? Defaults::sanitize_orderby( $atts['orderby'] ) : $options['orderby'];
 
@@ -687,6 +737,7 @@ final class BlogRenderer {
 			'columns'            => Defaults::clamp_int( $columns, Defaults::COLUMNS_MIN, Defaults::COLUMNS_MAX ),
 			'excerpt'            => max( 0, min( 80, $excerpt ) ),
 			'layout'             => $layout,
+			'pagination_mode'    => $mode,
 			'include_categories' => $options['include_categories'],
 			'exclude_categories' => $options['exclude_categories'],
 			'include_tags'       => $options['include_tags'],
@@ -1047,6 +1098,7 @@ final class BlogRenderer {
 			'columns'            => absint( $atts['columns'] ?? 0 ),
 			'excerpt'            => absint( $atts['excerpt'] ?? 0 ),
 			'layout'             => Defaults::sanitize_layout( $atts['layout'] ?? Defaults::SETTINGS['layout'] ),
+			'pagination_mode'    => Defaults::sanitize_pagination_mode( $atts['pagination_mode'] ?? Defaults::SETTINGS['pagination_mode'] ),
 			'include_categories' => Defaults::sanitize_id_list( $atts['include_categories'] ?? array() ),
 			'exclude_categories' => Defaults::sanitize_id_list( $atts['exclude_categories'] ?? array() ),
 			'include_tags'       => Defaults::sanitize_id_list( $atts['include_tags'] ?? array() ),

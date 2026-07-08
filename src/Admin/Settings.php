@@ -125,6 +125,11 @@ final class Settings implements ModuleInterface {
 			'Display Settings' => 'تنظیمات نمایش',
 			'Layout Style' => 'سبک چیدمان',
 			'Choose the blog layout style used by shortcode and Elementor output.' => 'سبک چیدمان بلاگ برای خروجی شورت‌کد و المنتور را انتخاب کنید.',
+			'Pagination Type' => 'نوع صفحه‌بندی',
+			'Choose how visitors load additional blog posts.' => 'انتخاب کنید بازدیدکنندگان چگونه نوشته‌های بیشتر بلاگ را بارگذاری کنند.',
+			'Pagination' => 'صفحه‌بندی',
+			'Load More' => 'مشاهده بیشتر',
+			'Infinite Scroll' => 'اسکرول بی‌نهایت',
 			'Grid' => 'شبکه‌ای',
 			'List' => 'لیستی',
 			'Magazine' => 'مجله‌ای',
@@ -692,6 +697,30 @@ final class Settings implements ModuleInterface {
 
 						<tr>
 							<th scope="row">
+								<label for="pagination_mode">
+									<?php esc_html_e( 'Pagination Type', 'iraniandubai-core' ); ?>
+								</label>
+							</th>
+							<td>
+								<select
+									id="pagination_mode"
+									name="pagination_mode"
+									aria-describedby="pagination_mode_description"
+								>
+									<?php foreach ( $this->get_pagination_mode_options() as $mode_value => $mode_label ) : ?>
+										<option value="<?php echo esc_attr( $mode_value ); ?>" <?php selected( $options['pagination_mode'], $mode_value ); ?>>
+											<?php echo esc_html( $mode_label ); ?>
+										</option>
+									<?php endforeach; ?>
+								</select>
+								<p id="pagination_mode_description" class="description">
+									<?php esc_html_e( 'Choose how visitors load additional blog posts.', 'iraniandubai-core' ); ?>
+								</p>
+							</td>
+						</tr>
+
+						<tr>
+							<th scope="row">
 								<label for="columns">
 									<?php esc_html_e( 'Columns', 'iraniandubai-core' ); ?>
 								</label>
@@ -913,6 +942,19 @@ final class Settings implements ModuleInterface {
 	}
 
 	/**
+	 * Get frontend pagination mode select options.
+	 *
+	 * @return array<string,string>
+	 */
+	private function get_pagination_mode_options(): array {
+		return array(
+			'pagination'      => __( 'Pagination', 'iraniandubai-core' ),
+			'load_more'       => __( 'Load More', 'iraniandubai-core' ),
+			'infinite_scroll' => __( 'Infinite Scroll', 'iraniandubai-core' ),
+		);
+	}
+
+	/**
 	 * Get taxonomy term select options.
 	 *
 	 * @param string $taxonomy Taxonomy name.
@@ -1074,6 +1116,7 @@ final class Settings implements ModuleInterface {
 			'excerpt_length'     => Defaults::SETTINGS['excerpt_length'],
 			'columns'            => Defaults::SETTINGS['columns'],
 			'layout'             => Defaults::SETTINGS['layout'],
+			'pagination_mode'    => Defaults::SETTINGS['pagination_mode'],
 			'include_categories' => Defaults::SETTINGS['include_categories'],
 			'exclude_categories' => Defaults::SETTINGS['exclude_categories'],
 			'include_tags'       => Defaults::SETTINGS['include_tags'],
