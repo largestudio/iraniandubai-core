@@ -9,6 +9,7 @@ namespace IDB\Core;
 
 use IDB\Admin\Settings;
 use IDB\Blog\Shortcode;
+use IDB\Content\Manager as ContentManager;
 use IDB\Elementor\Manager as ElementorManager;
 use IDB\Frontend\BlogRenderer;
 use IDB\ThemeBuilder\Manager as ThemeBuilderManager;
@@ -273,6 +274,7 @@ final class Plugin {
 		return array(
 			new Settings(),
 			new Shortcode(),
+			new ContentManager(),
 			new ElementorManager(),
 			new ThemeBuilderManager(),
 		);
