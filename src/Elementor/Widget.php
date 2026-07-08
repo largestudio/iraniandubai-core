@@ -120,19 +120,6 @@ final class Widget extends Widget_Base {
 		);
 
 		$this->add_control(
-			'posts',
-			array(
-				'label'       => __( 'Posts', 'iraniandubai-core' ),
-				'type'        => Controls_Manager::NUMBER,
-				'default'     => '',
-				'min'         => Defaults::POSTS_PER_PAGE_MIN,
-				'max'         => Defaults::POSTS_PER_PAGE_MAX,
-				'step'        => 1,
-				'placeholder' => (string) $defaults['posts_per_page'],
-			)
-		);
-
-		$this->add_control(
 			'columns',
 			array(
 				'label'   => __( 'Columns', 'iraniandubai-core' ),
@@ -331,7 +318,7 @@ final class Widget extends Widget_Base {
 			'pagination' => $settings['pagination'] ?? 'yes',
 		);
 
-		foreach ( array( 'posts', 'columns', 'excerpt' ) as $setting_key ) {
+		foreach ( array( 'columns', 'excerpt' ) as $setting_key ) {
 			if ( array_key_exists( $setting_key, $settings ) && '' !== $settings[ $setting_key ] ) {
 				$atts[ $setting_key ] = $settings[ $setting_key ];
 			}

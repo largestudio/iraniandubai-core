@@ -111,7 +111,7 @@ final class Settings implements ModuleInterface {
 			'Required Settings' => 'تنظیمات ضروری',
 			'No required settings. The widget uses the saved defaults until its controls are customized.' => 'تنظیم ضروری ندارد. ابزارک تا زمانی که کنترل‌های آن تغییر نکنند، از پیش‌فرض‌های ذخیره‌شده استفاده می‌کند.',
 			'Example Usage' => 'نمونه استفاده',
-			'Add IranianDubai Blog to a page, then adjust Posts, Columns, Category, Order, Excerpt, and Pagination in the Content tab.' => 'ابزارک بلاگ ایرانیان دبی را به صفحه اضافه کنید، سپس نوشته‌ها، ستون‌ها، دسته، ترتیب، خلاصه و صفحه‌بندی را در تب محتوا تنظیم کنید.',
+			'Add IranianDubai Blog to a page, then adjust Columns, Category, Order, Excerpt, and Pagination in the Content tab. Post count comes from Posts Per Page in this settings page.' => 'ابزارک بلاگ ایرانیان دبی را به صفحه اضافه کنید، سپس ستون‌ها، دسته، ترتیب، خلاصه و صفحه‌بندی را در تب محتوا تنظیم کنید. تعداد نوشته‌ها از گزینه تعداد نوشته در هر صفحه در همین صفحه تنظیمات می‌آید.',
 			'Import / Export Settings' => 'درون‌ریزی / برون‌بری تنظیمات',
 			'Export Settings' => 'برون‌بری تنظیمات',
 			'Export only IranianDubai Core plugin settings as a JSON file.' => 'فقط تنظیمات افزونه هسته ایرانیان دبی را به‌صورت فایل JSON برون‌بری می‌کند.',
@@ -515,7 +515,14 @@ final class Settings implements ModuleInterface {
 					</tr>
 					<tr>
 						<th scope="row"><?php esc_html_e( 'Example Usage', 'iraniandubai-core' ); ?></th>
-						<td><?php esc_html_e( 'Add IranianDubai Blog to a page, then adjust Posts, Columns, Category, Order, Excerpt, and Pagination in the Content tab.', 'iraniandubai-core' ); ?></td>
+						<td>
+							<?php
+							esc_html_e(
+								'Add IranianDubai Blog to a page, then adjust Columns, Category, Order, Excerpt, and Pagination in the Content tab. Post count comes from Posts Per Page in this settings page.',
+								'iraniandubai-core'
+							);
+							?>
+						</td>
 					</tr>
 				</tbody>
 			</table>
