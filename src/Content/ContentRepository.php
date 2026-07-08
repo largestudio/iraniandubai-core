@@ -12,19 +12,106 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 /**
- * Manages future content source registrations without persistence.
+ * Manages future content registrations without persistence.
  */
 final class ContentRepository {
 
 	/**
-	 * Registered content sources.
+	 * Registered content entries.
 	 *
 	 * @var array<string,array{id:string,label:string,callback:callable|null,meta:array<string,mixed>}>
 	 */
-	private array $sources = array();
+	private array $items = array();
+
+	/**
+	 * Register a future content entry.
+	 *
+	 * @param string              $id       Content identifier.
+	 * @param string              $label    Human-readable content label.
+	 * @param callable|null       $callback Optional content callback.
+	 * @param array<string,mixed> $meta     Optional content metadata.
+	 *
+	 * @return bool True when the content entry was registered.
+	 */
+	public function register(
+		string $id,
+		string $label,
+		?callable $callback = null,
+		array $meta = array()
+	): bool {
+		$id    = sanitize_key( $id );
+		$label = trim( $label );
+
+		if ( '' === $id || '' === $label ) {
+			return false;
+		}
+
+		$this->items[ $id ] = array(
+			'id'       => $id,
+			'label'    => $label,
+			'callback' => $callback,
+			'meta'     => $meta,
+		);
+
+		return true;
+	}
+
+	/**
+	 * Check whether a content entry is registered.
+	 *
+	 * @param string $id Content identifier.
+	 *
+	 * @return bool
+	 */
+	public function has( string $id ): bool {
+		return isset( $this->items[ sanitize_key( $id ) ] );
+	}
+
+	/**
+	 * Get one registered content entry.
+	 *
+	 * @param string $id Content identifier.
+	 *
+	 * @return array{id:string,label:string,callback:callable|null,meta:array<string,mixed>}|null
+	 */
+	public function get( string $id ): ?array {
+		$id = sanitize_key( $id );
+
+		return $this->items[ $id ] ?? null;
+	}
+
+	/**
+	 * Get all registered content entries.
+	 *
+	 * @return array<string,array{id:string,label:string,callback:callable|null,meta:array<string,mixed>}>
+	 */
+	public function all(): array {
+		return $this->items;
+	}
+
+	/**
+	 * Remove a registered content entry.
+	 *
+	 * @param string $id Content identifier.
+	 *
+	 * @return bool True when an entry existed and was removed.
+	 */
+	public function remove( string $id ): bool {
+		$id = sanitize_key( $id );
+
+		if ( ! isset( $this->items[ $id ] ) ) {
+			return false;
+		}
+
+		unset( $this->items[ $id ] );
+
+		return true;
+	}
 
 	/**
 	 * Register a future content source.
+	 *
+	 * @deprecated 1.3.0 Use register() instead.
 	 *
 	 * @param string              $id       Source identifier.
 	 * @param string              $label    Human-readable source label.
@@ -39,53 +126,43 @@ final class ContentRepository {
 		?callable $callback = null,
 		array $meta = array()
 	): bool {
-		$id    = sanitize_key( $id );
-		$label = trim( $label );
-
-		if ( '' === $id || '' === $label ) {
-			return false;
-		}
-
-		$this->sources[ $id ] = array(
-			'id'       => $id,
-			'label'    => $label,
-			'callback' => $callback,
-			'meta'     => $meta,
-		);
-
-		return true;
+		return $this->register( $id, $label, $callback, $meta );
 	}
 
 	/**
 	 * Check whether a content source is registered.
+	 *
+	 * @deprecated 1.3.0 Use has() instead.
 	 *
 	 * @param string $id Source identifier.
 	 *
 	 * @return bool
 	 */
 	public function has_source( string $id ): bool {
-		return isset( $this->sources[ sanitize_key( $id ) ] );
+		return $this->has( $id );
 	}
 
 	/**
 	 * Get one registered content source.
+	 *
+	 * @deprecated 1.3.0 Use get() instead.
 	 *
 	 * @param string $id Source identifier.
 	 *
 	 * @return array{id:string,label:string,callback:callable|null,meta:array<string,mixed>}|null
 	 */
 	public function get_source( string $id ): ?array {
-		$id = sanitize_key( $id );
-
-		return $this->sources[ $id ] ?? null;
+		return $this->get( $id );
 	}
 
 	/**
 	 * Get all registered content sources.
 	 *
+	 * @deprecated 1.3.0 Use all() instead.
+	 *
 	 * @return array<string,array{id:string,label:string,callback:callable|null,meta:array<string,mixed>}>
 	 */
 	public function get_sources(): array {
-		return $this->sources;
+		return $this->all();
 	}
 }

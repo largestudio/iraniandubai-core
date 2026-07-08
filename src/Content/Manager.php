@@ -117,17 +117,17 @@ final class Manager implements ModuleInterface {
 	 * @return void
 	 */
 	private function register_hooks(): void {
-		add_action( 'init', array( $this, 'register_content_sources' ), 20 );
+		add_action( 'init', array( $this, 'register_content' ), 20 );
 	}
 
 	/**
-	 * Allow future modules to register content sources.
+	 * Allow future modules to register content entries.
 	 *
 	 * @return void
 	 */
-	public function register_content_sources(): void {
+	public function register_content(): void {
 		/**
-		 * Fires when LSOS content sources can be registered.
+		 * Fires when LSOS content entries can be registered.
 		 *
 		 * @param ContentRepository $repository Content repository.
 		 * @param ContentResolver   $resolver   Content resolver.
@@ -136,7 +136,7 @@ final class Manager implements ModuleInterface {
 		 * @param Manager           $manager    Content manager.
 		 */
 		do_action(
-			'lsos/content/register_sources',
+			'lsos/content/register',
 			$this->repository,
 			$this->resolver,
 			$this->renderer,
