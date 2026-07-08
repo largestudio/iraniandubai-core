@@ -235,6 +235,74 @@ final class BlogRenderer {
 	}
 
 	/**
+	 * Get localized reading time text.
+	 *
+	 * @param int $minutes Estimated reading time in minutes.
+	 *
+	 * @return string
+	 */
+	public function get_read_time_text( int $minutes ): string {
+		$minutes = max( 1, absint( $minutes ) );
+
+		if ( $this->is_persian_locale() ) {
+			return sprintf(
+				/* translators: %d: Estimated reading time in minutes. */
+				__( '%d دقیقه مطالعه', 'iraniandubai-core' ),
+				$minutes
+			);
+		}
+
+		return sprintf(
+			/* translators: %d: Estimated reading time in minutes. */
+			_n( '%d min read', '%d min read', $minutes, 'iraniandubai-core' ),
+			$minutes
+		);
+	}
+
+	/**
+	 * Get localized read more button text.
+	 *
+	 * @return string
+	 */
+	public function get_read_more_text(): string {
+		if ( $this->is_persian_locale() ) {
+			return __( 'ادامه مطلب ...', 'iraniandubai-core' );
+		}
+
+		return __( 'Read more', 'iraniandubai-core' );
+	}
+
+	/**
+	 * Get localized display date for a post.
+	 *
+	 * @param int $post_id Post ID.
+	 *
+	 * @return string
+	 */
+	public function get_display_date( int $post_id ): string {
+		$timestamp = (int) get_post_time( 'U', true, $post_id );
+
+		if ( ! $timestamp ) {
+			return get_the_date( '', $post_id );
+		}
+
+		if ( ! $this->is_persian_locale() ) {
+			return get_the_date( '', $post_id );
+		}
+
+		$format = get_option( 'date_format' );
+		$format = is_string( $format ) && '' !== $format ? $format : 'Y/m/d';
+
+		foreach ( array( 'jdate', 'parsidate', 'gregorian_to_jalali' ) as $function_name ) {
+			if ( function_exists( $function_name ) ) {
+				return $this->get_external_jalali_date( $function_name, $format, $timestamp );
+			}
+		}
+
+		return $this->format_jalali_date( $format, $timestamp );
+	}
+
+	/**
 	 * Get the first assigned category for a post.
 	 *
 	 * @param int $post_id Post ID.
@@ -695,6 +763,160 @@ final class BlogRenderer {
 	 */
 	private function string_to_bool( mixed $value ): bool {
 		return in_array( strtolower( (string) $value ), array( '1', 'true', 'yes', 'on' ), true );
+	}
+
+	/**
+	 * Check whether the active locale is Persian.
+	 *
+	 * @return bool
+	 */
+	private function is_persian_locale(): bool {
+		return str_starts_with( determine_locale(), 'fa' );
+	}
+
+	/**
+	 * Format a date with a site-provided Jalali function.
+	 *
+	 * @param string $function_name Jalali function name.
+	 * @param string $format        Date format.
+	 * @param int    $timestamp     Unix timestamp.
+	 *
+	 * @return string
+	 */
+	private function get_external_jalali_date( string $function_name, string $format, int $timestamp ): string {
+		if ( 'gregorian_to_jalali' === $function_name ) {
+			$jalali = gregorian_to_jalali(
+				(int) wp_date( 'Y', $timestamp ),
+				(int) wp_date( 'n', $timestamp ),
+				(int) wp_date( 'j', $timestamp )
+			);
+
+			if ( is_array( $jalali ) && isset( $jalali[0], $jalali[1], $jalali[2] ) ) {
+				return $this->format_jalali_parts( $format, (int) $jalali[0], (int) $jalali[1], (int) $jalali[2], $timestamp );
+			}
+		}
+
+		$date = $function_name( $format, $timestamp );
+
+		return is_string( $date ) && '' !== $date ? $date : $this->format_jalali_date( $format, $timestamp );
+	}
+
+	/**
+	 * Format a date using the internal Gregorian-to-Jalali converter.
+	 *
+	 * @param string $format    Date format.
+	 * @param int    $timestamp Unix timestamp.
+	 *
+	 * @return string
+	 */
+	private function format_jalali_date( string $format, int $timestamp ): string {
+		$jalali = $this->gregorian_to_jalali(
+			(int) wp_date( 'Y', $timestamp ),
+			(int) wp_date( 'n', $timestamp ),
+			(int) wp_date( 'j', $timestamp )
+		);
+
+		return $this->format_jalali_parts( $format, $jalali[0], $jalali[1], $jalali[2], $timestamp );
+	}
+
+	/**
+	 * Format Jalali date parts with a small subset of WordPress date tokens.
+	 *
+	 * @param string $format    Date format.
+	 * @param int    $year      Jalali year.
+	 * @param int    $month     Jalali month.
+	 * @param int    $day       Jalali day.
+	 * @param int    $timestamp Unix timestamp.
+	 *
+	 * @return string
+	 */
+	private function format_jalali_parts( string $format, int $year, int $month, int $day, int $timestamp ): string {
+		$months = array(
+			1  => __( 'فروردین', 'iraniandubai-core' ),
+			2  => __( 'اردیبهشت', 'iraniandubai-core' ),
+			3  => __( 'خرداد', 'iraniandubai-core' ),
+			4  => __( 'تیر', 'iraniandubai-core' ),
+			5  => __( 'مرداد', 'iraniandubai-core' ),
+			6  => __( 'شهریور', 'iraniandubai-core' ),
+			7  => __( 'مهر', 'iraniandubai-core' ),
+			8  => __( 'آبان', 'iraniandubai-core' ),
+			9  => __( 'آذر', 'iraniandubai-core' ),
+			10 => __( 'دی', 'iraniandubai-core' ),
+			11 => __( 'بهمن', 'iraniandubai-core' ),
+			12 => __( 'اسفند', 'iraniandubai-core' ),
+		);
+		$short_months = array(
+			1  => __( 'فرو', 'iraniandubai-core' ),
+			2  => __( 'ارد', 'iraniandubai-core' ),
+			3  => __( 'خرد', 'iraniandubai-core' ),
+			4  => __( 'تیر', 'iraniandubai-core' ),
+			5  => __( 'مرد', 'iraniandubai-core' ),
+			6  => __( 'شهر', 'iraniandubai-core' ),
+			7  => __( 'مهر', 'iraniandubai-core' ),
+			8  => __( 'آبا', 'iraniandubai-core' ),
+			9  => __( 'آذر', 'iraniandubai-core' ),
+			10 => __( 'دی', 'iraniandubai-core' ),
+			11 => __( 'بهم', 'iraniandubai-core' ),
+			12 => __( 'اسف', 'iraniandubai-core' ),
+		);
+		$replacements = array(
+			'Y' => (string) $year,
+			'y' => substr( (string) $year, -2 ),
+			'F' => $months[ $month ],
+			'M' => $short_months[ $month ],
+			'm' => str_pad( (string) $month, 2, '0', STR_PAD_LEFT ),
+			'n' => (string) $month,
+			'd' => str_pad( (string) $day, 2, '0', STR_PAD_LEFT ),
+			'j' => (string) $day,
+			'l' => wp_date( 'l', $timestamp ),
+			'D' => wp_date( 'D', $timestamp ),
+		);
+
+		return strtr( $format, $replacements );
+	}
+
+	/**
+	 * Convert Gregorian date parts to Jalali date parts.
+	 *
+	 * @param int $gy Gregorian year.
+	 * @param int $gm Gregorian month.
+	 * @param int $gd Gregorian day.
+	 *
+	 * @return array{0:int,1:int,2:int}
+	 */
+	private function gregorian_to_jalali( int $gy, int $gm, int $gd ): array {
+		$g_days_in_month = array( 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31 );
+		$j_days_in_month = array( 31, 31, 31, 31, 31, 31, 30, 30, 30, 30, 30, 29 );
+		$gy -= 1600;
+		$gm -= 1;
+		$gd -= 1;
+		$g_day_no = 365 * $gy + (int) floor( ( $gy + 3 ) / 4 ) - (int) floor( ( $gy + 99 ) / 100 ) + (int) floor( ( $gy + 399 ) / 400 );
+
+		for ( $i = 0; $i < $gm; ++$i ) {
+			$g_day_no += $g_days_in_month[ $i ];
+		}
+
+		if ( $gm > 1 && ( ( 0 === $gy % 4 && 0 !== $gy % 100 ) || 0 === $gy % 400 ) ) {
+			++$g_day_no;
+		}
+
+		$g_day_no += $gd;
+		$j_day_no = $g_day_no - 79;
+		$j_np = (int) floor( $j_day_no / 12053 );
+		$j_day_no %= 12053;
+		$jy = 979 + 33 * $j_np + 4 * (int) floor( $j_day_no / 1461 );
+		$j_day_no %= 1461;
+
+		if ( $j_day_no >= 366 ) {
+			$jy += (int) floor( ( $j_day_no - 1 ) / 365 );
+			$j_day_no = ( $j_day_no - 1 ) % 365;
+		}
+
+		for ( $i = 0; $i < 11 && $j_day_no >= $j_days_in_month[ $i ]; ++$i ) {
+			$j_day_no -= $j_days_in_month[ $i ];
+		}
+
+		return array( $jy, $i + 1, $j_day_no + 1 );
 	}
 
 	/**

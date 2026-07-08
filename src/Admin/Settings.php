@@ -361,6 +361,60 @@ final class Settings implements ModuleInterface {
 
 			<hr />
 
+			<h2><?php esc_html_e( 'Shortcode Help', 'iraniandubai-core' ); ?></h2>
+
+			<p>
+				<?php esc_html_e( 'Use the main blog shortcode to display the blog listing:', 'iraniandubai-core' ); ?>
+			</p>
+			<p>
+				<code>[idb_blog]</code>
+			</p>
+
+			<p>
+				<?php esc_html_e( 'Supported shortcode attributes:', 'iraniandubai-core' ); ?>
+			</p>
+			<ul>
+				<li>
+					<code>posts_per_page</code> -
+					<?php esc_html_e( 'Number of posts per page.', 'iraniandubai-core' ); ?>
+				</li>
+				<li>
+					<code>posts</code> -
+					<?php esc_html_e( 'Alternative post count attribute.', 'iraniandubai-core' ); ?>
+				</li>
+				<li>
+					<code>columns</code> -
+					<?php esc_html_e( 'Number of grid columns.', 'iraniandubai-core' ); ?>
+				</li>
+				<li>
+					<code>excerpt</code> -
+					<?php esc_html_e( 'Excerpt word count.', 'iraniandubai-core' ); ?>
+				</li>
+				<li>
+					<code>category</code> -
+					<?php esc_html_e( 'Category slug or ID.', 'iraniandubai-core' ); ?>
+				</li>
+				<li>
+					<code>order</code> -
+					<?php esc_html_e( 'Post order, ASC or DESC.', 'iraniandubai-core' ); ?>
+				</li>
+				<li>
+					<code>orderby</code> -
+					<?php esc_html_e( 'Sort field such as date, title, modified, menu_order, rand, comment_count, or ID.', 'iraniandubai-core' ); ?>
+				</li>
+				<li>
+					<code>pagination</code> -
+					<?php esc_html_e( 'Enable or disable pagination.', 'iraniandubai-core' ); ?>
+				</li>
+			</ul>
+
+			<p>
+				<?php esc_html_e( 'Example:', 'iraniandubai-core' ); ?>
+				<code>[idb_blog posts_per_page="9" columns="3" excerpt="10"]</code>
+			</p>
+
+			<hr />
+
 			<h2><?php esc_html_e( 'Import / Export Settings', 'iraniandubai-core' ); ?></h2>
 
 			<h3><?php esc_html_e( 'Export Settings', 'iraniandubai-core' ); ?></h3>

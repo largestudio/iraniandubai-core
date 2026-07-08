@@ -112,13 +112,7 @@ $search_id         = wp_unique_id( 'idb-blog-search-' );
 							<?php endif; ?>
 
 							<span class="idb-blog-card__reading-time">
-								<?php
-								printf(
-									/* translators: %d: Estimated reading time in minutes. */
-									esc_html( _n( '%d min read', '%d min read', $reading_time, 'iraniandubai-core' ) ),
-									absint( $reading_time )
-								);
-								?>
+								<?php echo esc_html( $blog_renderer->get_read_time_text( $reading_time ) ); ?>
 							</span>
 						</div>
 
@@ -135,8 +129,8 @@ $search_id         = wp_unique_id( 'idb-blog-search-' );
 						<?php endif; ?>
 
 						<footer class="idb-blog-card__footer">
-							<time class="idb-blog-card__date" datetime="<?php echo esc_attr( get_the_date( DATE_W3C ) ); ?>">
-								<?php echo esc_html( get_the_date() ); ?>
+							<time class="idb-blog-card__date" datetime="<?php echo esc_attr( get_post_time( DATE_W3C, true, $post_id ) ); ?>">
+								<?php echo esc_html( $blog_renderer->get_display_date( $post_id ) ); ?>
 							</time>
 
 							<a
@@ -148,7 +142,7 @@ $search_id         = wp_unique_id( 'idb-blog-search-' );
 									$post_title
 								) ); ?>"
 							>
-								<?php echo esc_html( html_entity_decode( '&#1575;&#1583;&#1575;&#1605;&#1607; &#1605;&#1591;&#1604;&#1576;', ENT_QUOTES, 'UTF-8' ) ); ?>
+								<?php echo esc_html( $blog_renderer->get_read_more_text() ); ?>
 							</a>
 						</footer>
 					</div>
