@@ -136,47 +136,6 @@ final class Widget extends Widget_Base {
 		);
 
 		$this->add_control(
-			'category',
-			array(
-				'label'   => __( 'Category', 'iraniandubai-core' ),
-				'type'    => Controls_Manager::SELECT,
-				'default' => '',
-				'options' => $this->get_category_options(),
-			)
-		);
-
-		$this->add_control(
-			'order',
-			array(
-				'label'   => __( 'Order', 'iraniandubai-core' ),
-				'type'    => Controls_Manager::SELECT,
-				'default' => 'DESC',
-				'options' => array(
-					'DESC' => __( 'Descending', 'iraniandubai-core' ),
-					'ASC'  => __( 'Ascending', 'iraniandubai-core' ),
-				),
-			)
-		);
-
-		$this->add_control(
-			'orderby',
-			array(
-				'label'   => __( 'Order By', 'iraniandubai-core' ),
-				'type'    => Controls_Manager::SELECT,
-				'default' => 'date',
-				'options' => array(
-					'date'          => __( 'Date', 'iraniandubai-core' ),
-					'title'         => __( 'Title', 'iraniandubai-core' ),
-					'modified'      => __( 'Modified Date', 'iraniandubai-core' ),
-					'menu_order'    => __( 'Menu Order', 'iraniandubai-core' ),
-					'rand'          => __( 'Random', 'iraniandubai-core' ),
-					'comment_count' => __( 'Comment Count', 'iraniandubai-core' ),
-					'ID'            => __( 'ID', 'iraniandubai-core' ),
-				),
-			)
-		);
-
-		$this->add_control(
 			'excerpt',
 			array(
 				'label'       => __( 'Excerpt', 'iraniandubai-core' ),
@@ -312,9 +271,6 @@ final class Widget extends Widget_Base {
 		$data     = $this->get_data();
 		$settings = isset( $data['settings'] ) && is_array( $data['settings'] ) ? $data['settings'] : array();
 		$atts     = array(
-			'category'   => $settings['category'] ?? '',
-			'order'      => $settings['order'] ?? 'DESC',
-			'orderby'    => $settings['orderby'] ?? 'date',
 			'pagination' => $settings['pagination'] ?? 'yes',
 		);
 
@@ -328,32 +284,4 @@ final class Widget extends Widget_Base {
 		echo $this->renderer->render( $atts );
 	}
 
-	/**
-	 * Get category options for the category control.
-	 *
-	 * @return array<string,string>
-	 */
-	private function get_category_options(): array {
-		$options = array(
-			'' => __( 'All Categories', 'iraniandubai-core' ),
-		);
-		$terms   = get_terms(
-			array(
-				'hide_empty' => false,
-				'taxonomy'   => 'category',
-			)
-		);
-
-		if ( ! is_array( $terms ) ) {
-			return $options;
-		}
-
-		foreach ( $terms as $term ) {
-			if ( $term instanceof \WP_Term ) {
-				$options[ $term->slug ] = $term->name;
-			}
-		}
-
-		return $options;
-	}
 }

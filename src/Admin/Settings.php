@@ -91,6 +91,37 @@ final class Settings implements ModuleInterface {
 			'Blog Settings' => 'تنظیمات بلاگ',
 			'Posts Per Page' => 'تعداد نوشته در هر صفحه',
 			'Number of posts displayed on each page. Allowed range: %1$d-%2$d posts.' => 'تعداد نوشته‌هایی که در هر صفحه نمایش داده می‌شود. بازه مجاز: %1$d تا %2$d نوشته.',
+			'Query Settings' => 'تنظیمات کوئری',
+			'Include Categories' => 'دسته‌های شامل',
+			'Only show posts from these categories. Leave empty to include all categories.' => 'فقط نوشته‌های این دسته‌ها نمایش داده شود. برای نمایش همه دسته‌ها خالی بگذارید.',
+			'Exclude Categories' => 'دسته‌های مستثنی',
+			'Hide posts from these categories. Leave empty to exclude none.' => 'نوشته‌های این دسته‌ها مخفی شود. برای مستثنی نکردن هیچ دسته‌ای خالی بگذارید.',
+			'Include Tags' => 'برچسب‌های شامل',
+			'Only show posts with these tags. Leave empty to include all tags.' => 'فقط نوشته‌های دارای این برچسب‌ها نمایش داده شود. برای نمایش همه برچسب‌ها خالی بگذارید.',
+			'Exclude Tags' => 'برچسب‌های مستثنی',
+			'Hide posts with these tags. Leave empty to exclude none.' => 'نوشته‌های دارای این برچسب‌ها مخفی شود. برای مستثنی نکردن هیچ برچسبی خالی بگذارید.',
+			'Author' => 'نویسنده',
+			'All authors' => 'همه نویسنده‌ها',
+			'Show posts from one author. Leave empty to include all authors.' => 'نوشته‌های یک نویسنده نمایش داده شود. برای نمایش همه نویسنده‌ها خالی بگذارید.',
+			'Sticky Posts Mode' => 'حالت نوشته‌های سنجاق‌شده',
+			'Include all posts' => 'نمایش همه نوشته‌ها',
+			'Only sticky posts' => 'فقط نوشته‌های سنجاق‌شده',
+			'Exclude sticky posts' => 'حذف نوشته‌های سنجاق‌شده',
+			'Control how sticky posts are included in the blog query.' => 'نحوه حضور نوشته‌های سنجاق‌شده در کوئری بلاگ را کنترل کنید.',
+			'Offset' => 'آفست',
+			'Skip this many posts before showing results. Pagination is adjusted safely. Allowed range: 0-%d.' => 'این تعداد نوشته پیش از نمایش نتایج رد می‌شود. صفحه‌بندی به‌صورت امن تنظیم می‌شود. بازه مجاز: 0 تا %d.',
+			'Order By' => 'مرتب‌سازی بر اساس',
+			'Date' => 'تاریخ',
+			'Modified Date' => 'تاریخ ویرایش',
+			'Title' => 'عنوان',
+			'Comment Count' => 'تعداد دیدگاه',
+			'Random' => 'تصادفی',
+			'Menu Order' => 'ترتیب منو',
+			'Choose which post field controls sorting.' => 'انتخاب کنید مرتب‌سازی بر اساس کدام فیلد نوشته انجام شود.',
+			'Order' => 'ترتیب',
+			'Descending' => 'نزولی',
+			'Ascending' => 'صعودی',
+			'Choose ascending or descending order.' => 'ترتیب صعودی یا نزولی را انتخاب کنید.',
 			'Display Settings' => 'تنظیمات نمایش',
 			'Layout Style' => 'سبک چیدمان',
 			'Choose the blog layout style used by shortcode and Elementor output.' => 'سبک چیدمان بلاگ برای خروجی شورت‌کد و المنتور را انتخاب کنید.',
@@ -117,7 +148,7 @@ final class Settings implements ModuleInterface {
 			'Required Settings' => 'تنظیمات ضروری',
 			'No required settings. The widget uses the saved defaults until its controls are customized.' => 'تنظیم ضروری ندارد. ابزارک تا زمانی که کنترل‌های آن تغییر نکنند، از پیش‌فرض‌های ذخیره‌شده استفاده می‌کند.',
 			'Example Usage' => 'نمونه استفاده',
-			'Add IranianDubai Blog to a page, then adjust Columns, Category, Order, Excerpt, and Pagination in the Content tab. Post count comes from Posts Per Page in this settings page.' => 'ابزارک بلاگ ایرانیان دبی را به صفحه اضافه کنید، سپس ستون‌ها، دسته، ترتیب، خلاصه و صفحه‌بندی را در تب محتوا تنظیم کنید. تعداد نوشته‌ها از گزینه تعداد نوشته در هر صفحه در همین صفحه تنظیمات می‌آید.',
+			'Add IranianDubai Blog to a page, then adjust Columns, Excerpt, and Pagination in the Content tab. Query behavior comes from Query Settings in this settings page.' => 'ابزارک بلاگ ایرانیان دبی را به صفحه اضافه کنید، سپس ستون‌ها، خلاصه و صفحه‌بندی را در تب محتوا تنظیم کنید. رفتار کوئری از بخش تنظیمات کوئری در همین صفحه تنظیمات می‌آید.',
 			'Import / Export Settings' => 'درون‌ریزی / برون‌بری تنظیمات',
 			'Export Settings' => 'برون‌بری تنظیمات',
 			'Export only IranianDubai Core plugin settings as a JSON file.' => 'فقط تنظیمات افزونه هسته ایرانیان دبی را به‌صورت فایل JSON برون‌بری می‌کند.',
@@ -139,6 +170,7 @@ final class Settings implements ModuleInterface {
 			'Enable or disable pagination.' => 'فعال یا غیرفعال کردن صفحه‌بندی.',
 			'Current pagination page for direct shortcode use.' => 'صفحه فعلی صفحه‌بندی برای استفاده مستقیم در شورت‌کد.',
 			'Saved blog setting' => 'تنظیم ذخیره‌شده بلاگ',
+			'Saved query setting' => 'تنظیم ذخیره‌شده کوئری',
 			'Alternative post count attribute.' => 'ویژگی جایگزین برای تعداد نوشته‌ها.',
 			'Number of posts displayed on each page.' => 'تعداد نوشته‌هایی که در هر صفحه نمایش داده می‌شود.',
 			'Settings export failed. Please try again.' => 'برون‌بری تنظیمات ناموفق بود. لطفا دوباره تلاش کنید.',
@@ -310,7 +342,7 @@ final class Settings implements ModuleInterface {
 	/**
 	 * Plugin Options.
 	 *
-	 * @return array{posts_per_page:int,excerpt_length:int,columns:int,layout:string}
+	 * @return array<string,mixed>
 	 */
 	private function options(): array {
 		return Defaults::settings();
@@ -391,6 +423,239 @@ final class Settings implements ModuleInterface {
 										absint( Defaults::POSTS_PER_PAGE_MAX )
 									);
 									?>
+								</p>
+							</td>
+						</tr>
+					</table>
+				</fieldset>
+
+				<h2><?php esc_html_e( 'Query Settings', 'iraniandubai-core' ); ?></h2>
+				<fieldset>
+					<legend class="screen-reader-text"><?php esc_html_e( 'Query Settings', 'iraniandubai-core' ); ?></legend>
+					<table class="form-table" role="presentation">
+						<tr>
+							<th scope="row">
+								<label for="include_categories">
+									<?php esc_html_e( 'Include Categories', 'iraniandubai-core' ); ?>
+								</label>
+							</th>
+							<td>
+								<select
+									id="include_categories"
+									name="include_categories[]"
+									multiple
+									aria-describedby="include_categories_description"
+								>
+									<?php foreach ( $this->get_term_options( 'category' ) as $term_id => $term_name ) : ?>
+										<option value="<?php echo esc_attr( (string) $term_id ); ?>" <?php selected( in_array( $term_id, $options['include_categories'], true ) ); ?>>
+											<?php echo esc_html( $term_name ); ?>
+										</option>
+									<?php endforeach; ?>
+								</select>
+								<p id="include_categories_description" class="description">
+									<?php esc_html_e( 'Only show posts from these categories. Leave empty to include all categories.', 'iraniandubai-core' ); ?>
+								</p>
+							</td>
+						</tr>
+
+						<tr>
+							<th scope="row">
+								<label for="exclude_categories">
+									<?php esc_html_e( 'Exclude Categories', 'iraniandubai-core' ); ?>
+								</label>
+							</th>
+							<td>
+								<select
+									id="exclude_categories"
+									name="exclude_categories[]"
+									multiple
+									aria-describedby="exclude_categories_description"
+								>
+									<?php foreach ( $this->get_term_options( 'category' ) as $term_id => $term_name ) : ?>
+										<option value="<?php echo esc_attr( (string) $term_id ); ?>" <?php selected( in_array( $term_id, $options['exclude_categories'], true ) ); ?>>
+											<?php echo esc_html( $term_name ); ?>
+										</option>
+									<?php endforeach; ?>
+								</select>
+								<p id="exclude_categories_description" class="description">
+									<?php esc_html_e( 'Hide posts from these categories. Leave empty to exclude none.', 'iraniandubai-core' ); ?>
+								</p>
+							</td>
+						</tr>
+
+						<tr>
+							<th scope="row">
+								<label for="include_tags">
+									<?php esc_html_e( 'Include Tags', 'iraniandubai-core' ); ?>
+								</label>
+							</th>
+							<td>
+								<select
+									id="include_tags"
+									name="include_tags[]"
+									multiple
+									aria-describedby="include_tags_description"
+								>
+									<?php foreach ( $this->get_term_options( 'post_tag' ) as $term_id => $term_name ) : ?>
+										<option value="<?php echo esc_attr( (string) $term_id ); ?>" <?php selected( in_array( $term_id, $options['include_tags'], true ) ); ?>>
+											<?php echo esc_html( $term_name ); ?>
+										</option>
+									<?php endforeach; ?>
+								</select>
+								<p id="include_tags_description" class="description">
+									<?php esc_html_e( 'Only show posts with these tags. Leave empty to include all tags.', 'iraniandubai-core' ); ?>
+								</p>
+							</td>
+						</tr>
+
+						<tr>
+							<th scope="row">
+								<label for="exclude_tags">
+									<?php esc_html_e( 'Exclude Tags', 'iraniandubai-core' ); ?>
+								</label>
+							</th>
+							<td>
+								<select
+									id="exclude_tags"
+									name="exclude_tags[]"
+									multiple
+									aria-describedby="exclude_tags_description"
+								>
+									<?php foreach ( $this->get_term_options( 'post_tag' ) as $term_id => $term_name ) : ?>
+										<option value="<?php echo esc_attr( (string) $term_id ); ?>" <?php selected( in_array( $term_id, $options['exclude_tags'], true ) ); ?>>
+											<?php echo esc_html( $term_name ); ?>
+										</option>
+									<?php endforeach; ?>
+								</select>
+								<p id="exclude_tags_description" class="description">
+									<?php esc_html_e( 'Hide posts with these tags. Leave empty to exclude none.', 'iraniandubai-core' ); ?>
+								</p>
+							</td>
+						</tr>
+
+						<tr>
+							<th scope="row">
+								<label for="author">
+									<?php esc_html_e( 'Author', 'iraniandubai-core' ); ?>
+								</label>
+							</th>
+							<td>
+								<select
+									id="author"
+									name="author"
+									aria-describedby="author_description"
+								>
+									<option value="0"><?php esc_html_e( 'All authors', 'iraniandubai-core' ); ?></option>
+									<?php foreach ( $this->get_author_options() as $author_id => $author_name ) : ?>
+										<option value="<?php echo esc_attr( (string) $author_id ); ?>" <?php selected( $options['author'], $author_id ); ?>>
+											<?php echo esc_html( $author_name ); ?>
+										</option>
+									<?php endforeach; ?>
+								</select>
+								<p id="author_description" class="description">
+									<?php esc_html_e( 'Show posts from one author. Leave empty to include all authors.', 'iraniandubai-core' ); ?>
+								</p>
+							</td>
+						</tr>
+
+						<tr>
+							<th scope="row">
+								<label for="sticky_posts_mode">
+									<?php esc_html_e( 'Sticky Posts Mode', 'iraniandubai-core' ); ?>
+								</label>
+							</th>
+							<td>
+								<select
+									id="sticky_posts_mode"
+									name="sticky_posts_mode"
+									aria-describedby="sticky_posts_mode_description"
+								>
+									<?php foreach ( $this->get_sticky_mode_options() as $mode_value => $mode_label ) : ?>
+										<option value="<?php echo esc_attr( $mode_value ); ?>" <?php selected( $options['sticky_posts_mode'], $mode_value ); ?>>
+											<?php echo esc_html( $mode_label ); ?>
+										</option>
+									<?php endforeach; ?>
+								</select>
+								<p id="sticky_posts_mode_description" class="description">
+									<?php esc_html_e( 'Control how sticky posts are included in the blog query.', 'iraniandubai-core' ); ?>
+								</p>
+							</td>
+						</tr>
+
+						<tr>
+							<th scope="row">
+								<label for="offset">
+									<?php esc_html_e( 'Offset', 'iraniandubai-core' ); ?>
+								</label>
+							</th>
+							<td>
+								<input
+									id="offset"
+									type="number"
+									name="offset"
+									value="<?php echo esc_attr( $options['offset'] ); ?>"
+									min="0"
+									max="<?php echo esc_attr( (string) Defaults::OFFSET_MAX ); ?>"
+									step="1"
+									class="small-text"
+									aria-describedby="offset_description"
+								/>
+								<p id="offset_description" class="description">
+									<?php
+									printf(
+										/* translators: %d: Maximum offset value. */
+										esc_html__( 'Skip this many posts before showing results. Pagination is adjusted safely. Allowed range: 0-%d.', 'iraniandubai-core' ),
+										absint( Defaults::OFFSET_MAX )
+									);
+									?>
+								</p>
+							</td>
+						</tr>
+
+						<tr>
+							<th scope="row">
+								<label for="orderby">
+									<?php esc_html_e( 'Order By', 'iraniandubai-core' ); ?>
+								</label>
+							</th>
+							<td>
+								<select
+									id="orderby"
+									name="orderby"
+									aria-describedby="orderby_description"
+								>
+									<?php foreach ( $this->get_orderby_options() as $orderby_value => $orderby_label ) : ?>
+										<option value="<?php echo esc_attr( $orderby_value ); ?>" <?php selected( $options['orderby'], $orderby_value ); ?>>
+											<?php echo esc_html( $orderby_label ); ?>
+										</option>
+									<?php endforeach; ?>
+								</select>
+								<p id="orderby_description" class="description">
+									<?php esc_html_e( 'Choose which post field controls sorting.', 'iraniandubai-core' ); ?>
+								</p>
+							</td>
+						</tr>
+
+						<tr>
+							<th scope="row">
+								<label for="order">
+									<?php esc_html_e( 'Order', 'iraniandubai-core' ); ?>
+								</label>
+							</th>
+							<td>
+								<select
+									id="order"
+									name="order"
+									aria-describedby="order_description"
+								>
+									<?php foreach ( $this->get_order_options() as $order_value => $order_label ) : ?>
+										<option value="<?php echo esc_attr( $order_value ); ?>" <?php selected( $options['order'], $order_value ); ?>>
+											<?php echo esc_html( $order_label ); ?>
+										</option>
+									<?php endforeach; ?>
+								</select>
+								<p id="order_description" class="description">
+									<?php esc_html_e( 'Choose ascending or descending order.', 'iraniandubai-core' ); ?>
 								</p>
 							</td>
 						</tr>
@@ -548,7 +813,7 @@ final class Settings implements ModuleInterface {
 						<td>
 							<?php
 							esc_html_e(
-								'Add IranianDubai Blog to a page, then adjust Columns, Category, Order, Excerpt, and Pagination in the Content tab. Post count comes from Posts Per Page in this settings page.',
+								'Add IranianDubai Blog to a page, then adjust Columns, Excerpt, and Pagination in the Content tab. Query behavior comes from Query Settings in this settings page.',
 								'iraniandubai-core'
 							);
 							?>
@@ -648,6 +913,102 @@ final class Settings implements ModuleInterface {
 	}
 
 	/**
+	 * Get taxonomy term select options.
+	 *
+	 * @param string $taxonomy Taxonomy name.
+	 *
+	 * @return array<int,string>
+	 */
+	private function get_term_options( string $taxonomy ): array {
+		$terms = get_terms(
+			array(
+				'hide_empty' => false,
+				'taxonomy'   => $taxonomy,
+			)
+		);
+
+		if ( ! is_array( $terms ) ) {
+			return array();
+		}
+
+		$options = array();
+
+		foreach ( $terms as $term ) {
+			if ( $term instanceof \WP_Term ) {
+				$options[ $term->term_id ] = $term->name;
+			}
+		}
+
+		return $options;
+	}
+
+	/**
+	 * Get author select options.
+	 *
+	 * @return array<int,string>
+	 */
+	private function get_author_options(): array {
+		$users = get_users(
+			array(
+				'has_published_posts' => array( 'post' ),
+				'orderby'             => 'display_name',
+				'order'               => 'ASC',
+			)
+		);
+
+		$options = array();
+
+		foreach ( $users as $user ) {
+			if ( $user instanceof \WP_User ) {
+				$options[ $user->ID ] = $user->display_name;
+			}
+		}
+
+		return $options;
+	}
+
+	/**
+	 * Get sticky mode select options.
+	 *
+	 * @return array<string,string>
+	 */
+	private function get_sticky_mode_options(): array {
+		return array(
+			'include_all'    => __( 'Include all posts', 'iraniandubai-core' ),
+			'only_sticky'    => __( 'Only sticky posts', 'iraniandubai-core' ),
+			'exclude_sticky' => __( 'Exclude sticky posts', 'iraniandubai-core' ),
+		);
+	}
+
+	/**
+	 * Get orderby select options.
+	 *
+	 * @return array<string,string>
+	 */
+	private function get_orderby_options(): array {
+		return array(
+			'date'          => __( 'Date', 'iraniandubai-core' ),
+			'modified'      => __( 'Modified Date', 'iraniandubai-core' ),
+			'title'         => __( 'Title', 'iraniandubai-core' ),
+			'comment_count' => __( 'Comment Count', 'iraniandubai-core' ),
+			'rand'          => __( 'Random', 'iraniandubai-core' ),
+			'menu_order'    => __( 'Menu Order', 'iraniandubai-core' ),
+		);
+	}
+
+	/**
+	 * Get order select options.
+	 *
+	 * @return array<string,string>
+	 */
+	private function get_order_options(): array {
+		return array(
+			'DESC' => __( 'Descending', 'iraniandubai-core' ),
+			'ASC'  => __( 'Ascending', 'iraniandubai-core' ),
+		);
+	}
+
+	/**
 	 * Get supported shortcode attribute documentation rows.
 	 *
 	 * @return array<int,array{name:string,default:string,description:string}>
@@ -671,12 +1032,12 @@ final class Settings implements ModuleInterface {
 			),
 			array(
 				'name'        => 'order',
-				'default'     => 'DESC',
+				'default'     => __( 'Saved query setting', 'iraniandubai-core' ),
 				'description' => __( 'Post order. Supports ASC or DESC.', 'iraniandubai-core' ),
 			),
 			array(
 				'name'        => 'orderby',
-				'default'     => 'date',
+				'default'     => __( 'Saved query setting', 'iraniandubai-core' ),
 				'description' => __( 'Sort field. Supports date, title, modified, menu_order, rand, comment_count, or ID.', 'iraniandubai-core' ),
 			),
 			array(
@@ -705,14 +1066,23 @@ final class Settings implements ModuleInterface {
 	/**
 	 * Read and sanitize submitted settings.
 	 *
-	 * @return array{posts_per_page:int,excerpt_length:int,columns:int,layout:string}
+	 * @return array<string,mixed>
 	 */
 	private function sanitize_posted_options(): array {
 		$posted = array(
-			'posts_per_page' => Defaults::SETTINGS['posts_per_page'],
-			'excerpt_length' => Defaults::SETTINGS['excerpt_length'],
-			'columns'        => Defaults::SETTINGS['columns'],
-			'layout'         => Defaults::SETTINGS['layout'],
+			'posts_per_page'     => Defaults::SETTINGS['posts_per_page'],
+			'excerpt_length'     => Defaults::SETTINGS['excerpt_length'],
+			'columns'            => Defaults::SETTINGS['columns'],
+			'layout'             => Defaults::SETTINGS['layout'],
+			'include_categories' => Defaults::SETTINGS['include_categories'],
+			'exclude_categories' => Defaults::SETTINGS['exclude_categories'],
+			'include_tags'       => Defaults::SETTINGS['include_tags'],
+			'exclude_tags'       => Defaults::SETTINGS['exclude_tags'],
+			'author'             => Defaults::SETTINGS['author'],
+			'sticky_posts_mode'  => Defaults::SETTINGS['sticky_posts_mode'],
+			'offset'             => Defaults::SETTINGS['offset'],
+			'orderby'            => Defaults::SETTINGS['orderby'],
+			'order'              => Defaults::SETTINGS['order'],
 		);
 
 		foreach ( array_keys( $posted ) as $key ) {
