@@ -7,10 +7,6 @@
 
 namespace IDB\Content;
 
-if ( ! defined( 'ABSPATH' ) ) {
-	exit;
-}
-
 /**
  * Creates immutable Content entities from normalized data.
  */
