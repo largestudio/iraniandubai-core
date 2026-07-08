@@ -1,5 +1,11 @@
 # Changelog
 
+## v1.0.0
+
+### Changed
+- Promoted the release candidate to the final v1.0.0 release.
+- Completed final pre-release audit for version metadata, lifecycle safety, admin security, AJAX behavior, cache invalidation, and documentation.
+
 ## v1.0.0-rc.1
 
 ### Added

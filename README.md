@@ -2,7 +2,7 @@
 
 Production-ready core functionality plugin for the IranianDubai website.
 
-Current release candidate: `1.0.0-rc.1`.
+Current release: `1.0.0`.
 
 ## Requirements
 
@@ -41,7 +41,7 @@ Common attributes:
 
 After activation, open **IranianDubai** in the WordPress admin menu to configure blog defaults and import or export plugin settings.
 
-## Release Candidate Notes
+## Release Notes
 
 - Public blog output is rendered through `IDB\Frontend\BlogRenderer`.
 - Queries are built through `IDB\Blog\Query`.
