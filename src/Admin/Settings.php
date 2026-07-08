@@ -235,6 +235,7 @@ final class Settings implements ModuleInterface {
 
 		$options = $this->options();
 		$example = wp_json_encode( array( 'settings' => $options ) );
+		$shortcode_attributes = $this->get_shortcode_attribute_rows();
 
 		if ( ! is_string( $example ) ) {
 			$example = '';
@@ -254,97 +255,115 @@ final class Settings implements ModuleInterface {
 
 			<?php $this->render_import_export_notice(); ?>
 
+			<h2><?php esc_html_e( 'General Settings', 'iraniandubai-core' ); ?></h2>
+			<div class="notice notice-info inline">
+				<p>
+					<?php esc_html_e( 'Use these defaults when a shortcode or Elementor widget does not provide its own blog display values.', 'iraniandubai-core' ); ?>
+				</p>
+			</div>
+
 			<form method="post">
 
 				<?php wp_nonce_field( self::NONCE_ACTION, self::NONCE_NAME ); ?>
 				<input type="hidden" name="idb_settings_action" value="save" />
 
-				<table class="form-table">
+				<h2><?php esc_html_e( 'Blog Settings', 'iraniandubai-core' ); ?></h2>
+				<fieldset>
+					<legend class="screen-reader-text"><?php esc_html_e( 'Blog Settings', 'iraniandubai-core' ); ?></legend>
+					<table class="form-table" role="presentation">
+						<tr>
+							<th scope="row">
+								<label for="posts_per_page">
+									<?php esc_html_e( 'Posts Per Page', 'iraniandubai-core' ); ?>
+								</label>
+							</th>
+							<td>
+								<input
+									id="posts_per_page"
+									type="number"
+									name="posts_per_page"
+									value="<?php echo esc_attr( $options['posts_per_page'] ); ?>"
+									min="<?php echo esc_attr( (string) Defaults::POSTS_PER_PAGE_MIN ); ?>"
+									max="<?php echo esc_attr( (string) Defaults::POSTS_PER_PAGE_MAX ); ?>"
+									step="1"
+									class="small-text"
+									aria-describedby="posts_per_page_description"
+								/>
+								<p id="posts_per_page_description" class="description">
+									<?php
+									printf(
+										/* translators: 1: Minimum value. 2: Maximum value. */
+										esc_html__( 'Number of posts displayed on each page. Allowed range: %1$d-%2$d posts.', 'iraniandubai-core' ),
+										absint( Defaults::POSTS_PER_PAGE_MIN ),
+										absint( Defaults::POSTS_PER_PAGE_MAX )
+									);
+									?>
+								</p>
+							</td>
+						</tr>
+					</table>
+				</fieldset>
 
-					<tr>
-						<th scope="row">
-							<label for="posts_per_page">
-								<?php esc_html_e( 'Posts per page', 'iraniandubai-core' ); ?>
-							</label>
-						</th>
-						<td>
-							<input
-								id="posts_per_page"
-								type="number"
-								name="posts_per_page"
-								value="<?php echo esc_attr( $options['posts_per_page'] ); ?>"
-								min="<?php echo esc_attr( (string) Defaults::POSTS_PER_PAGE_MIN ); ?>"
-								max="<?php echo esc_attr( (string) Defaults::POSTS_PER_PAGE_MAX ); ?>"
-								step="1"
-								class="small-text"
-							/>
-							<p class="description">
-								<?php
-								printf(
-									/* translators: 1: Minimum value. 2: Maximum value. */
-									esc_html__( 'Allowed range: %1$d-%2$d posts.', 'iraniandubai-core' ),
-									absint( Defaults::POSTS_PER_PAGE_MIN ),
-									absint( Defaults::POSTS_PER_PAGE_MAX )
-								);
-								?>
-							</p>
-						</td>
-					</tr>
+				<h2><?php esc_html_e( 'Display Settings', 'iraniandubai-core' ); ?></h2>
+				<fieldset>
+					<legend class="screen-reader-text"><?php esc_html_e( 'Display Settings', 'iraniandubai-core' ); ?></legend>
+					<table class="form-table" role="presentation">
+						<tr>
+							<th scope="row">
+								<label for="columns">
+									<?php esc_html_e( 'Columns', 'iraniandubai-core' ); ?>
+								</label>
+							</th>
+							<td>
+								<select
+									id="columns"
+									name="columns"
+									aria-describedby="columns_description"
+								>
+									<?php for ( $columns = Defaults::COLUMNS_MIN; $columns <= Defaults::COLUMNS_MAX; ++$columns ) : ?>
+										<option value="<?php echo esc_attr( (string) $columns ); ?>" <?php selected( $options['columns'], $columns ); ?>>
+											<?php echo esc_html( (string) $columns ); ?>
+										</option>
+									<?php endfor; ?>
+								</select>
+								<p id="columns_description" class="description">
+									<?php esc_html_e( 'Desktop columns for the blog grid when no shortcode or Elementor column value is set.', 'iraniandubai-core' ); ?>
+								</p>
+							</td>
+						</tr>
 
-					<tr>
-						<th scope="row">
-							<label for="excerpt_length">
-								<?php esc_html_e( 'Excerpt length', 'iraniandubai-core' ); ?>
-							</label>
-						</th>
-						<td>
-							<input
-								id="excerpt_length"
-								type="number"
-								name="excerpt_length"
-								value="<?php echo esc_attr( $options['excerpt_length'] ); ?>"
-								min="<?php echo esc_attr( (string) Defaults::EXCERPT_LENGTH_MIN ); ?>"
-								max="<?php echo esc_attr( (string) Defaults::EXCERPT_LENGTH_MAX ); ?>"
-								step="1"
-								class="small-text"
-							/>
-							<p class="description">
-								<?php
-								printf(
-									/* translators: 1: Minimum value. 2: Maximum value. */
-									esc_html__( 'Allowed range: %1$d-%2$d words.', 'iraniandubai-core' ),
-									absint( Defaults::EXCERPT_LENGTH_MIN ),
-									absint( Defaults::EXCERPT_LENGTH_MAX )
-								);
-								?>
-							</p>
-						</td>
-					</tr>
-
-					<tr>
-						<th scope="row">
-							<label for="columns">
-								<?php esc_html_e( 'Default columns', 'iraniandubai-core' ); ?>
-							</label>
-						</th>
-						<td>
-							<select
-								id="columns"
-								name="columns"
-							>
-								<?php for ( $columns = Defaults::COLUMNS_MIN; $columns <= Defaults::COLUMNS_MAX; ++$columns ) : ?>
-									<option value="<?php echo esc_attr( (string) $columns ); ?>" <?php selected( $options['columns'], $columns ); ?>>
-										<?php echo esc_html( (string) $columns ); ?>
-									</option>
-								<?php endfor; ?>
-							</select>
-							<p class="description">
-								<?php esc_html_e( 'Used when a shortcode or Elementor widget does not set its own column count.', 'iraniandubai-core' ); ?>
-							</p>
-						</td>
-					</tr>
-
-				</table>
+						<tr>
+							<th scope="row">
+								<label for="excerpt_length">
+									<?php esc_html_e( 'Excerpt Length', 'iraniandubai-core' ); ?>
+								</label>
+							</th>
+							<td>
+								<input
+									id="excerpt_length"
+									type="number"
+									name="excerpt_length"
+									value="<?php echo esc_attr( $options['excerpt_length'] ); ?>"
+									min="<?php echo esc_attr( (string) Defaults::EXCERPT_LENGTH_MIN ); ?>"
+									max="<?php echo esc_attr( (string) Defaults::EXCERPT_LENGTH_MAX ); ?>"
+									step="1"
+									class="small-text"
+									aria-describedby="excerpt_length_description"
+								/>
+								<p id="excerpt_length_description" class="description">
+									<?php
+									printf(
+										/* translators: 1: Minimum value. 2: Maximum value. */
+										esc_html__( 'Maximum words shown before Read More. Allowed range: %1$d-%2$d words.', 'iraniandubai-core' ),
+										absint( Defaults::EXCERPT_LENGTH_MIN ),
+										absint( Defaults::EXCERPT_LENGTH_MAX )
+									);
+									?>
+								</p>
+							</td>
+						</tr>
+					</table>
+				</fieldset>
 
 				<p>
 					<button
@@ -361,57 +380,58 @@ final class Settings implements ModuleInterface {
 
 			<hr />
 
-			<h2><?php esc_html_e( 'Shortcode Help', 'iraniandubai-core' ); ?></h2>
+			<h2><?php esc_html_e( 'Shortcode', 'iraniandubai-core' ); ?></h2>
 
-			<p>
-				<?php esc_html_e( 'Use the main blog shortcode to display the blog listing:', 'iraniandubai-core' ); ?>
-			</p>
-			<p>
+			<h3><?php esc_html_e( 'Basic Shortcode', 'iraniandubai-core' ); ?></h3>
+			<p class="description">
 				<code>[idb_blog]</code>
 			</p>
 
-			<p>
-				<?php esc_html_e( 'Supported shortcode attributes:', 'iraniandubai-core' ); ?>
+			<h3><?php esc_html_e( 'Example', 'iraniandubai-core' ); ?></h3>
+			<p class="description">
+				<code>[idb_blog posts_per_page="9" columns="3"]</code>
 			</p>
-			<ul>
-				<li>
-					<code>posts_per_page</code> -
-					<?php esc_html_e( 'Number of posts per page.', 'iraniandubai-core' ); ?>
-				</li>
-				<li>
-					<code>posts</code> -
-					<?php esc_html_e( 'Alternative post count attribute.', 'iraniandubai-core' ); ?>
-				</li>
-				<li>
-					<code>columns</code> -
-					<?php esc_html_e( 'Number of grid columns.', 'iraniandubai-core' ); ?>
-				</li>
-				<li>
-					<code>excerpt</code> -
-					<?php esc_html_e( 'Excerpt word count.', 'iraniandubai-core' ); ?>
-				</li>
-				<li>
-					<code>category</code> -
-					<?php esc_html_e( 'Category slug or ID.', 'iraniandubai-core' ); ?>
-				</li>
-				<li>
-					<code>order</code> -
-					<?php esc_html_e( 'Post order, ASC or DESC.', 'iraniandubai-core' ); ?>
-				</li>
-				<li>
-					<code>orderby</code> -
-					<?php esc_html_e( 'Sort field such as date, title, modified, menu_order, rand, comment_count, or ID.', 'iraniandubai-core' ); ?>
-				</li>
-				<li>
-					<code>pagination</code> -
-					<?php esc_html_e( 'Enable or disable pagination.', 'iraniandubai-core' ); ?>
-				</li>
-			</ul>
 
-			<p>
-				<?php esc_html_e( 'Example:', 'iraniandubai-core' ); ?>
-				<code>[idb_blog posts_per_page="9" columns="3" excerpt="10"]</code>
-			</p>
+			<table class="widefat striped">
+				<thead>
+					<tr>
+						<th scope="col"><?php esc_html_e( 'Attribute', 'iraniandubai-core' ); ?></th>
+						<th scope="col"><?php esc_html_e( 'Default', 'iraniandubai-core' ); ?></th>
+						<th scope="col"><?php esc_html_e( 'Description', 'iraniandubai-core' ); ?></th>
+					</tr>
+				</thead>
+				<tbody>
+					<?php foreach ( $shortcode_attributes as $attribute ) : ?>
+						<tr>
+							<th scope="row"><code><?php echo esc_html( $attribute['name'] ); ?></code></th>
+							<td><?php echo esc_html( $attribute['default'] ); ?></td>
+							<td><?php echo esc_html( $attribute['description'] ); ?></td>
+						</tr>
+					<?php endforeach; ?>
+				</tbody>
+			</table>
+
+			<h2><?php esc_html_e( 'Elementor Help', 'iraniandubai-core' ); ?></h2>
+			<table class="widefat striped">
+				<tbody>
+					<tr>
+						<th scope="row"><?php esc_html_e( 'Location', 'iraniandubai-core' ); ?></th>
+						<td><?php esc_html_e( 'Elementor editor, General widget category.', 'iraniandubai-core' ); ?></td>
+					</tr>
+					<tr>
+						<th scope="row"><?php esc_html_e( 'Widget Name', 'iraniandubai-core' ); ?></th>
+						<td><?php esc_html_e( 'IranianDubai Blog', 'iraniandubai-core' ); ?></td>
+					</tr>
+					<tr>
+						<th scope="row"><?php esc_html_e( 'Required Settings', 'iraniandubai-core' ); ?></th>
+						<td><?php esc_html_e( 'No required settings. The widget uses the saved defaults until its controls are customized.', 'iraniandubai-core' ); ?></td>
+					</tr>
+					<tr>
+						<th scope="row"><?php esc_html_e( 'Example Usage', 'iraniandubai-core' ); ?></th>
+						<td><?php esc_html_e( 'Add IranianDubai Blog to a page, then adjust Posts, Columns, Category, Order, Excerpt, and Pagination in the Content tab.', 'iraniandubai-core' ); ?></td>
+					</tr>
+				</tbody>
+			</table>
 
 			<hr />
 
@@ -447,8 +467,9 @@ final class Settings implements ModuleInterface {
 								rows="8"
 								class="large-text code"
 								placeholder="<?php echo esc_attr( $example ); ?>"
+								aria-describedby="idb_import_json_description"
 							></textarea>
-							<p class="description">
+							<p id="idb_import_json_description" class="description">
 								<?php
 								esc_html_e(
 									'Paste a JSON export from IranianDubai Core. Imported values are validated and clamped to the allowed settings ranges.',
@@ -462,10 +483,85 @@ final class Settings implements ModuleInterface {
 				<?php submit_button( __( 'Import Settings', 'iraniandubai-core' ), 'secondary', 'submit', false ); ?>
 			</form>
 
+			<hr />
+
+			<h2><?php esc_html_e( 'About', 'iraniandubai-core' ); ?></h2>
+			<table class="widefat striped">
+				<tbody>
+					<tr>
+						<th scope="row"><?php esc_html_e( 'Plugin', 'iraniandubai-core' ); ?></th>
+						<td><?php esc_html_e( 'IranianDubai Core', 'iraniandubai-core' ); ?></td>
+					</tr>
+					<tr>
+						<th scope="row"><?php esc_html_e( 'Version', 'iraniandubai-core' ); ?></th>
+						<td><?php echo esc_html( IDB_CORE_VERSION ); ?></td>
+					</tr>
+					<tr>
+						<th scope="row"><?php esc_html_e( 'Purpose', 'iraniandubai-core' ); ?></th>
+						<td><?php esc_html_e( 'Core blog, shortcode, Elementor, and settings tools for the IranianDubai website.', 'iraniandubai-core' ); ?></td>
+					</tr>
+				</tbody>
+			</table>
+
 		</div>
 
 		<?php
 
+	}
+
+	/**
+	 * Get supported shortcode attribute documentation rows.
+	 *
+	 * @return array<int,array{name:string,default:string,description:string}>
+	 */
+	private function get_shortcode_attribute_rows(): array {
+		return array(
+			array(
+				'name'        => 'category',
+				'default'     => __( 'All categories', 'iraniandubai-core' ),
+				'description' => __( 'Category slug or ID to show posts from one category.', 'iraniandubai-core' ),
+			),
+			array(
+				'name'        => 'columns',
+				'default'     => __( 'Saved display setting', 'iraniandubai-core' ),
+				'description' => __( 'Desktop columns for the blog grid.', 'iraniandubai-core' ),
+			),
+			array(
+				'name'        => 'excerpt',
+				'default'     => __( 'Saved display setting', 'iraniandubai-core' ),
+				'description' => __( 'Maximum excerpt words shown before Read More.', 'iraniandubai-core' ),
+			),
+			array(
+				'name'        => 'order',
+				'default'     => 'DESC',
+				'description' => __( 'Post order. Supports ASC or DESC.', 'iraniandubai-core' ),
+			),
+			array(
+				'name'        => 'orderby',
+				'default'     => 'date',
+				'description' => __( 'Sort field. Supports date, title, modified, menu_order, rand, comment_count, or ID.', 'iraniandubai-core' ),
+			),
+			array(
+				'name'        => 'pagination',
+				'default'     => 'yes',
+				'description' => __( 'Enable or disable pagination.', 'iraniandubai-core' ),
+			),
+			array(
+				'name'        => 'paged',
+				'default'     => '1',
+				'description' => __( 'Current pagination page for direct shortcode use.', 'iraniandubai-core' ),
+			),
+			array(
+				'name'        => 'posts',
+				'default'     => __( 'Saved blog setting', 'iraniandubai-core' ),
+				'description' => __( 'Alternative post count attribute.', 'iraniandubai-core' ),
+			),
+			array(
+				'name'        => 'posts_per_page',
+				'default'     => __( 'Saved blog setting', 'iraniandubai-core' ),
+				'description' => __( 'Number of posts displayed on each page.', 'iraniandubai-core' ),
+			),
+		);
 	}
 
 	/**
@@ -545,7 +641,7 @@ final class Settings implements ModuleInterface {
 				__( 'Settings export failed. Please try again.', 'iraniandubai-core' ),
 			),
 			'import_empty'   => array(
-				'error',
+				'warning',
 				__( 'Import failed. Please paste a JSON settings export.', 'iraniandubai-core' ),
 			),
 			'import_invalid' => array(
