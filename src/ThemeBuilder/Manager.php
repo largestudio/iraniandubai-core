@@ -57,17 +57,35 @@ final class Manager implements ModuleInterface {
 	}
 
 	/**
-	 * Legacy Theme Builder render hooks.
+	 * Legacy Theme Builder render hooks and dispatcher methods.
 	 *
-	 * @var array<string,string>
+	 * @var array<string,array{hook:string,method:string}>
 	 */
 	private const LEGACY_RENDER_HOOKS = array(
-		'header'  => 'lsos/theme/header',
-		'footer'  => 'lsos/theme/footer',
-		'single'  => 'lsos/theme/single',
-		'archive' => 'lsos/theme/archive',
-		'search'  => 'lsos/theme/search',
-		'404'     => 'lsos/theme/404',
+		'header'  => array(
+			'hook'   => 'lsos/theme/header',
+			'method' => 'dispatch_header',
+		),
+		'footer'  => array(
+			'hook'   => 'lsos/theme/footer',
+			'method' => 'dispatch_footer',
+		),
+		'single'  => array(
+			'hook'   => 'lsos/theme/single',
+			'method' => 'dispatch_single',
+		),
+		'archive' => array(
+			'hook'   => 'lsos/theme/archive',
+			'method' => 'dispatch_archive',
+		),
+		'search'  => array(
+			'hook'   => 'lsos/theme/search',
+			'method' => 'dispatch_search',
+		),
+		'404'     => array(
+			'hook'   => 'lsos/theme/404',
+			'method' => 'dispatch_404',
+		),
 	);
 
 	/**
@@ -108,14 +126,74 @@ final class Manager implements ModuleInterface {
 	private function register_hooks(): void {
 		add_action( 'lsos/theme/location', array( $this->loader, 'render' ), 10, 1 );
 
-		foreach ( self::LEGACY_RENDER_HOOKS as $location_id => $hook_name ) {
-			add_action(
-				$hook_name,
-				function () use ( $location_id ): void {
-					do_action( 'lsos/theme/location', $location_id );
-				}
-			);
+		foreach ( self::LEGACY_RENDER_HOOKS as $hook ) {
+			add_action( $hook['hook'], array( $this, $hook['method'] ) );
 		}
+	}
+
+	/**
+	 * Dispatch the legacy header hook to the generic location hook.
+	 *
+	 * @return void
+	 */
+	public function dispatch_header(): void {
+		$this->dispatch_location( 'header' );
+	}
+
+	/**
+	 * Dispatch the legacy footer hook to the generic location hook.
+	 *
+	 * @return void
+	 */
+	public function dispatch_footer(): void {
+		$this->dispatch_location( 'footer' );
+	}
+
+	/**
+	 * Dispatch the legacy single hook to the generic location hook.
+	 *
+	 * @return void
+	 */
+	public function dispatch_single(): void {
+		$this->dispatch_location( 'single' );
+	}
+
+	/**
+	 * Dispatch the legacy archive hook to the generic location hook.
+	 *
+	 * @return void
+	 */
+	public function dispatch_archive(): void {
+		$this->dispatch_location( 'archive' );
+	}
+
+	/**
+	 * Dispatch the legacy search hook to the generic location hook.
+	 *
+	 * @return void
+	 */
+	public function dispatch_search(): void {
+		$this->dispatch_location( 'search' );
+	}
+
+	/**
+	 * Dispatch the legacy 404 hook to the generic location hook.
+	 *
+	 * @return void
+	 */
+	public function dispatch_404(): void {
+		$this->dispatch_location( '404' );
+	}
+
+	/**
+	 * Dispatch a location through the generic Theme Builder render hook.
+	 *
+	 * @param string $location_id Location identifier.
+	 *
+	 * @return void
+	 */
+	private function dispatch_location( string $location_id ): void {
+		do_action( 'lsos/theme/location', $location_id );
 	}
 
 	/**
