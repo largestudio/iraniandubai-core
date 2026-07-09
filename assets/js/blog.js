@@ -26,7 +26,7 @@
 	}
 
 	function getAjaxForm(element) {
-		return element ? element.closest('.idb-blog__search') : null;
+		return element ? element.closest('[data-idb-blog-search], .idb-blog__search') : null;
 	}
 
 	function setLoading(blog, isLoading, isAppending) {
@@ -413,7 +413,7 @@
 		}
 
 		loadBlog(blog, getFormUrl(form), true, 'replace');
-	});
+	}, true);
 
 	window.addEventListener('popstate', function () {
 		document.querySelectorAll('[data-idb-blog]').forEach(function (blog) {

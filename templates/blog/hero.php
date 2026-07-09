@@ -21,6 +21,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 			action="<?php echo esc_url( $blog_renderer->get_search_url() ); ?>"
 			method="get"
 			role="search"
+			data-idb-blog-search
 		>
 			<?php if ( '' !== $selected_category ) : ?>
 				<input type="hidden" name="idb_category" value="<?php echo esc_attr( $selected_category ); ?>" />
