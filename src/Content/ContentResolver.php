@@ -7,6 +7,10 @@
 
 namespace IDB\Content;
 
+use IDB\Content\Conditions\ConditionInterface;
+use IDB\Content\Conditions\ConditionRegistry;
+use IDB\Content\Conditions\WordPressConditionProvider;
+
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
@@ -17,10 +21,27 @@ if ( ! defined( 'ABSPATH' ) ) {
 final class ContentResolver {
 
 	/**
-	 * Get the primary resolved content context.
+	 * Condition registry.
 	 *
-	 * This method intentionally returns an empty context until future sprints
-	 * implement full context detection.
+	 * @var ConditionRegistry
+	 */
+	private ConditionRegistry $registry;
+
+	/**
+	 * Constructor.
+	 *
+	 * @param ConditionRegistry|null $registry Optional condition registry.
+	 */
+	public function __construct( ?ConditionRegistry $registry = null ) {
+		$this->registry = $registry ?? new ConditionRegistry();
+
+		if ( null === $registry ) {
+			( new WordPressConditionProvider() )->register( $this->registry );
+		}
+	}
+
+	/**
+	 * Get the primary resolved content context.
 	 *
 	 * @return string
 	 */
@@ -33,19 +54,25 @@ final class ContentResolver {
 	/**
 	 * Get all resolved content context identifiers.
 	 *
-	 * This method intentionally returns an empty context list until future
-	 * sprints implement full WordPress condition detection.
-	 *
 	 * @return string[]
 	 */
 	public function contexts(): array {
+		$contexts = array_keys(
+			array_filter(
+				$this->registry->all(),
+				static function ( ConditionInterface $condition ): bool {
+					return $condition->matches();
+				}
+			)
+		);
+
 		/**
 		 * Filters resolved LSOS content contexts.
 		 *
 		 * @param string[]        $contexts Resolved context identifiers.
 		 * @param ContentResolver $resolver Resolver instance.
 		 */
-		$contexts = apply_filters( 'lsos/content/contexts', array(), $this );
+		$contexts = apply_filters( 'lsos/content/contexts', $contexts, $this );
 
 		if ( ! is_array( $contexts ) ) {
 			$contexts = array();
@@ -95,5 +122,14 @@ final class ContentResolver {
 		}
 
 		return in_array( $context, $this->contexts(), true );
+	}
+
+	/**
+	 * Get the condition registry.
+	 *
+	 * @return ConditionRegistry
+	 */
+	public function registry(): ConditionRegistry {
+		return $this->registry;
 	}
 }
