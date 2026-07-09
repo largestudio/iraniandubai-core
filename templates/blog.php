@@ -35,6 +35,9 @@ $has_next_page     = $current_page < (int) $blog_query->max_num_pages;
 $next_page_url     = $has_next_page ? $blog_renderer->get_page_url( $current_page + 1 ) : '';
 $ajax_atts         = $blog_renderer->get_ajax_attributes( $blog_atts );
 $search_id         = wp_unique_id( 'idb-blog-search-' );
+$component_path    = static function ( string $component ): string {
+	return IDB_CORE_PATH . 'templates/blog/' . $component . '.php';
+};
 ?>
 
 <section
@@ -42,189 +45,23 @@ $search_id         = wp_unique_id( 'idb-blog-search-' );
 	data-idb-blog
 	data-idb-blog-atts="<?php echo esc_attr( $ajax_atts ); ?>"
 	data-idb-blog-pagination-mode="<?php echo esc_attr( $pagination_mode ); ?>"
+	dir="rtl"
 	aria-label="<?php esc_attr_e( 'Latest blog posts', 'iraniandubai-core' ); ?>"
 >
-	<?php if ( ! empty( $filter_categories ) ) : ?>
-		<nav class="idb-blog__filters" aria-label="<?php esc_attr_e( 'Blog category filter', 'iraniandubai-core' ); ?>">
-			<a class="idb-blog__filter-link <?php echo esc_attr( '' === $selected_category ? 'is-active' : '' ); ?>" href="<?php echo esc_url( $blog_renderer->get_category_filter_url( '' ) ); ?>">
-				<?php esc_html_e( 'All', 'iraniandubai-core' ); ?>
-			</a>
-
-			<?php foreach ( $filter_categories as $filter_category ) : ?>
-				<a class="idb-blog__filter-link <?php echo esc_attr( $selected_category === $filter_category->slug ? 'is-active' : '' ); ?>" href="<?php echo esc_url( $blog_renderer->get_category_filter_url( $filter_category->slug ) ); ?>">
-					<?php echo esc_html( $filter_category->name ); ?>
-				</a>
-			<?php endforeach; ?>
-		</nav>
-	<?php endif; ?>
-
-	<form
-		class="idb-blog__search"
-		action="<?php echo esc_url( $blog_renderer->get_search_url() ); ?>"
-		method="get"
-		role="search"
-	>
-		<?php if ( '' !== $selected_category ) : ?>
-			<input type="hidden" name="idb_category" value="<?php echo esc_attr( $selected_category ); ?>" />
-		<?php endif; ?>
-
-		<label class="screen-reader-text" for="<?php echo esc_attr( $search_id ); ?>">
-			<?php esc_html_e( 'Search blog posts', 'iraniandubai-core' ); ?>
-		</label>
-		<input
-			id="<?php echo esc_attr( $search_id ); ?>"
-			class="idb-blog__search-input"
-			type="search"
-			name="idb_search"
-			value="<?php echo esc_attr( $selected_search ); ?>"
-			placeholder="<?php esc_attr_e( 'Search posts', 'iraniandubai-core' ); ?>"
-		/>
-		<button class="idb-blog__search-button" type="submit">
-			<?php esc_html_e( 'Search', 'iraniandubai-core' ); ?>
-		</button>
-	</form>
+	<?php include $component_path( 'hero' ); ?>
+	<?php include $component_path( 'category-cards' ); ?>
 
 	<?php if ( $blog_query->have_posts() ) : ?>
-		<div class="idb-blog__grid idb-blog__grid--columns-<?php echo esc_attr( (string) $columns ); ?>" data-idb-blog-grid>
-			<?php
-			$blog_index = 0;
+		<?php include $component_path( 'featured' ); ?>
 
-			while ( $blog_query->have_posts() ) :
-				$blog_query->the_post();
+		<div class="idb-blog__content-layout">
+			<main class="idb-blog__main">
+				<?php include $component_path( 'grid' ); ?>
+				<?php include $component_path( 'pagination' ); ?>
+			</main>
 
-				$post_id      = get_the_ID();
-				$post_title   = get_the_title();
-				$title_id     = 'idb-blog-card-title-' . $post_id;
-				$permalink    = get_permalink( $post_id );
-				$category     = $blog_renderer->get_category( $post_id );
-				$reading_time = $blog_renderer->get_read_time( $post_id );
-				$is_priority  = 0 === $blog_index;
-				++$blog_index;
-				?>
-				<article <?php post_class( 'idb-blog-card' ); ?> aria-labelledby="<?php echo esc_attr( $title_id ); ?>">
-					<a
-						class="idb-blog-card__media"
-						href="<?php echo esc_url( $permalink ); ?>"
-						aria-label="<?php echo esc_attr( sprintf(
-							/* translators: %s: Post title. */
-							__( 'Read %s', 'iraniandubai-core' ),
-							$post_title
-						) ); ?>"
-					>
-						<?php echo wp_kses_post( $blog_renderer->get_image( $post_id, $is_priority ) ); ?>
-					</a>
-
-					<div class="idb-blog-card__content">
-						<div class="idb-blog-card__meta">
-							<?php if ( null !== $category ) : ?>
-								<a class="idb-blog-card__category" href="<?php echo esc_url( get_category_link( $category->term_id ) ); ?>">
-									<?php echo esc_html( $category->name ); ?>
-								</a>
-							<?php endif; ?>
-
-							<span class="idb-blog-card__reading-time">
-								<?php echo esc_html( $blog_renderer->get_read_time_text( $reading_time ) ); ?>
-							</span>
-						</div>
-
-						<h2 id="<?php echo esc_attr( $title_id ); ?>" class="idb-blog-card__title">
-							<a href="<?php echo esc_url( $permalink ); ?>">
-								<?php echo esc_html( $post_title ); ?>
-							</a>
-						</h2>
-
-						<?php if ( $excerpt_length > 0 ) : ?>
-							<div class="idb-blog-card__excerpt">
-								<p><?php echo esc_html( $blog_renderer->get_excerpt( $post_id, $excerpt_length ) ); ?></p>
-							</div>
-						<?php endif; ?>
-
-						<footer class="idb-blog-card__footer">
-							<time
-								class="idb-blog-card__date"
-								datetime="<?php echo esc_attr( get_post_time( DATE_W3C, true, $post_id ) ); ?>"
-								dir="<?php echo esc_attr( $blog_renderer->get_display_date_direction() ); ?>"
-								style="unicode-bidi: isolate;"
-							>
-								<?php echo esc_html( $blog_renderer->get_display_date( $post_id ) ); ?>
-							</time>
-
-							<a
-								class="idb-blog-card__button"
-								href="<?php echo esc_url( $permalink ); ?>"
-								aria-label="<?php echo esc_attr( sprintf(
-									/* translators: %s: Post title. */
-									__( 'Continue reading %s', 'iraniandubai-core' ),
-									$post_title
-								) ); ?>"
-							>
-								<?php echo esc_html( $blog_renderer->get_read_more_text() ); ?>
-							</a>
-						</footer>
-					</div>
-				</article>
-			<?php endwhile; ?>
+			<?php include $component_path( 'sidebar' ); ?>
 		</div>
-
-		<?php if ( $blog_renderer->has_pagination( $blog_atts ) && $blog_query->max_num_pages > 1 && 'pagination' === $pagination_mode ) : ?>
-			<nav class="idb-blog__pagination" aria-label="<?php esc_attr_e( 'Blog pagination', 'iraniandubai-core' ); ?>">
-				<?php
-				$big          = 999999999;
-				$add_args     = array();
-
-				$pagination_args = array(
-					'base'      => $blog_renderer->get_pagination_base( $big ),
-					'format'    => $blog_renderer->get_pagination_format(),
-					'total'     => $blog_query->max_num_pages,
-					'current'   => $current_page,
-					'prev_text' => '&lsaquo;',
-					'next_text' => '&rsaquo;',
-				);
-
-				if ( '' !== $selected_category ) {
-					$add_args['idb_category'] = $selected_category;
-				}
-
-				if ( '' !== $selected_search ) {
-					$add_args['idb_search'] = $selected_search;
-				}
-
-				if ( ! empty( $add_args ) ) {
-					$pagination_args['add_args'] = $add_args;
-				}
-
-				$pagination = paginate_links( $pagination_args );
-
-				if ( is_string( $pagination ) ) {
-					echo wp_kses_post( $pagination );
-				}
-				?>
-			</nav>
-		<?php endif; ?>
-
-		<?php if ( $blog_renderer->has_pagination( $blog_atts ) && $has_next_page && 'load_more' === $pagination_mode ) : ?>
-			<div class="idb-blog__load-more">
-				<a
-					class="idb-blog__load-more-button"
-					href="<?php echo esc_url( $next_page_url ); ?>"
-					data-idb-blog-load-more
-				>
-					<?php echo esc_html( $blog_renderer->get_load_more_text() ); ?>
-				</a>
-			</div>
-		<?php endif; ?>
-
-		<?php if ( $blog_renderer->has_pagination( $blog_atts ) && $has_next_page && 'infinite_scroll' === $pagination_mode ) : ?>
-			<div class="idb-blog__infinite" data-idb-blog-infinite>
-				<a
-					class="idb-blog__infinite-link"
-					href="<?php echo esc_url( $next_page_url ); ?>"
-					data-idb-blog-infinite-link
-				>
-					<?php echo esc_html( $blog_renderer->get_load_more_text() ); ?>
-				</a>
-			</div>
-		<?php endif; ?>
 
 		<?php
 		// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- BlogRenderer returns escaped JSON-LD script markup.
@@ -233,4 +70,6 @@ $search_id         = wp_unique_id( 'idb-blog-search-' );
 	<?php else : ?>
 		<p class="idb-blog__empty"><?php esc_html_e( 'No posts found.', 'iraniandubai-core' ); ?></p>
 	<?php endif; ?>
+
+	<?php include $component_path( 'cta' ); ?>
 </section>
