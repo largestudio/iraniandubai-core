@@ -39,6 +39,8 @@ final class Manager implements ModuleInterface {
 	 */
 	public function register_widgets( \Elementor\Widgets_Manager $widgets_manager ): void {
 		$widgets_manager->register( new Widget() );
+		$widgets_manager->register( new BlogHeroWidget() );
+		$widgets_manager->register( new BlogGridWidget() );
 	}
 
 	/**

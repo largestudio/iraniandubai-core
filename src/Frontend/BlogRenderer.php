@@ -121,6 +121,63 @@ final class BlogRenderer {
 	}
 
 	/**
+	 * Render only the blog grid surface.
+	 *
+	 * @param array<string,mixed> $atts Blog display attributes.
+	 *
+	 * @return string
+	 */
+	public function render_grid( array $atts ): string {
+		$atts['render_context'] = 'grid';
+
+		$this->enqueue_assets();
+
+		$cache_key = $this->get_cache_key( $atts );
+
+		if ( '' !== $cache_key ) {
+			$cached = get_transient( $cache_key );
+
+			if ( is_string( $cached ) ) {
+				return $cached;
+			}
+		}
+
+		$query = $this->get_query( $atts );
+
+		ob_start();
+
+		$blog_query        = $query;
+		$blog_renderer     = $this;
+		$blog_atts         = $this->normalize_atts( $atts );
+		$blog_paged        = $this->get_current_page( $atts );
+		$selected_category = $this->get_selected_category( $blog_atts );
+		$selected_search   = $this->get_selected_search();
+		$columns           = $blog_atts['columns'];
+		$excerpt_length    = $blog_atts['excerpt'];
+		$layout            = $blog_atts['layout'];
+		$pagination_mode   = sanitize_html_class( $this->get_pagination_mode( $blog_atts ) );
+		$current_page      = $blog_paged;
+		$has_next_page     = $current_page < (int) $blog_query->max_num_pages;
+		$next_page_url     = $has_next_page ? $this->get_page_url( $current_page + 1 ) : '';
+		$ajax_atts         = $this->get_ajax_attributes( $blog_atts );
+		$template          = IDB_CORE_PATH . 'templates/elementor/blog-grid.php';
+
+		if ( is_readable( $template ) ) {
+			include $template;
+		}
+
+		wp_reset_postdata();
+
+		$output = (string) ob_get_clean();
+
+		if ( '' !== $cache_key && '' !== $output ) {
+			set_transient( $cache_key, $output, self::CACHE_TTL );
+		}
+
+		return $output;
+	}
+
+	/**
 	 * Enqueue assets when the current queried post contains the shortcode.
 	 *
 	 * @return void
@@ -156,9 +213,11 @@ final class BlogRenderer {
 
 		$this->apply_url_filters_to_request( $url );
 
+		$html = 'grid' === ( $atts['render_context'] ?? '' ) ? $this->render_grid( $atts ) : $this->render( $atts );
+
 		wp_send_json_success(
 			array(
-				'html' => $this->render( $atts ),
+				'html' => $html,
 				'url'  => $url,
 			)
 		);
@@ -720,8 +779,8 @@ final class BlogRenderer {
 
 		$columns = $this->get_int_attribute( $atts, 'columns', $options['columns'] );
 		$excerpt = $this->get_int_attribute( $atts, 'excerpt', $options['excerpt_length'] );
-		$layout  = Defaults::sanitize_layout( $options['layout'] );
-		$mode    = Defaults::sanitize_pagination_mode( $options['pagination_mode'] );
+		$layout  = '' !== (string) ( $atts['layout'] ?? '' ) ? Defaults::sanitize_layout( $atts['layout'] ) : Defaults::sanitize_layout( $options['layout'] );
+		$mode    = '' !== (string) ( $atts['pagination_mode'] ?? '' ) ? Defaults::sanitize_pagination_mode( $atts['pagination_mode'] ) : Defaults::sanitize_pagination_mode( $options['pagination_mode'] );
 		$order   = '' !== (string) ( $atts['order'] ?? '' ) ? Defaults::sanitize_order( $atts['order'] ) : $options['order'];
 		$orderby = '' !== (string) ( $atts['orderby'] ?? '' ) ? Defaults::sanitize_orderby( $atts['orderby'] ) : $options['orderby'];
 
@@ -749,6 +808,7 @@ final class BlogRenderer {
 			'orderby'            => $orderby,
 			'pagination'         => $this->string_to_bool( $atts['pagination'] ?? 'yes' ),
 			'posts'              => Defaults::clamp_int( $posts, Defaults::POSTS_PER_PAGE_MIN, Defaults::POSTS_PER_PAGE_MAX ),
+			'render_context'     => 'grid' === ( $atts['render_context'] ?? '' ) ? 'grid' : '',
 		);
 
 		return $this->normalized_atts_cache[ $cache_key ];
@@ -982,11 +1042,11 @@ final class BlogRenderer {
 	}
 
 	/**
-	 * Load blog assets only when the shortcode renders.
+	 * Load blog assets for shortcode and Elementor blog output.
 	 *
 	 * @return void
 	 */
-	private function enqueue_assets(): void {
+	public function enqueue_assets(): void {
 		wp_enqueue_style(
 			'idb-core-blog',
 			IDB_CORE_URL . 'assets/css/blog.css',
@@ -1111,6 +1171,7 @@ final class BlogRenderer {
 			'pagination'         => ! empty( $atts['pagination'] ) ? 'yes' : 'no',
 			'posts'              => absint( $atts['posts'] ?? 0 ),
 			'posts_per_page'     => absint( $atts['posts'] ?? 0 ),
+			'render_context'     => 'grid' === ( $atts['render_context'] ?? '' ) ? 'grid' : '',
 		);
 	}
 
