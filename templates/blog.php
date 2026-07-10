@@ -52,16 +52,10 @@ $component_path    = static function ( string $component ): string {
 	<?php include $component_path( 'category-cards' ); ?>
 
 	<?php if ( $blog_query->have_posts() ) : ?>
-		<?php include $component_path( 'featured' ); ?>
-
-		<div class="idb-blog__content-layout">
-			<main class="idb-blog__main">
-				<?php include $component_path( 'grid' ); ?>
-				<?php include $component_path( 'pagination' ); ?>
-			</main>
-
-			<?php include $component_path( 'sidebar' ); ?>
-		</div>
+		<main class="idb-blog__main">
+			<?php include $component_path( 'grid' ); ?>
+			<?php include $component_path( 'pagination' ); ?>
+		</main>
 
 		<?php
 		// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- BlogRenderer returns escaped JSON-LD script markup.
@@ -70,6 +64,4 @@ $component_path    = static function ( string $component ): string {
 	<?php else : ?>
 		<p class="idb-blog__empty"><?php esc_html_e( 'No posts found.', 'iraniandubai-core' ); ?></p>
 	<?php endif; ?>
-
-	<?php include $component_path( 'cta' ); ?>
 </section>
