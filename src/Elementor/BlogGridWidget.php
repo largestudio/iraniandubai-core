@@ -8,6 +8,8 @@
 namespace IDB\Elementor;
 
 use Elementor\Controls_Manager;
+use Elementor\Group_Control_Box_Shadow;
+use Elementor\Group_Control_Typography;
 use Elementor\Widget_Base;
 use IDB\Blog\Defaults;
 use IDB\Frontend\BlogRenderer;
@@ -81,6 +83,16 @@ final class BlogGridWidget extends Widget_Base {
 	 * @return void
 	 */
 	protected function register_controls(): void {
+		$this->register_content_controls();
+		$this->register_style_controls();
+	}
+
+	/**
+	 * Register content controls.
+	 *
+	 * @return void
+	 */
+	private function register_content_controls(): void {
 		$defaults = Defaults::SETTINGS;
 
 		$this->start_controls_section(
@@ -180,10 +192,13 @@ final class BlogGridWidget extends Widget_Base {
 		$this->add_control(
 			'pagination_mode',
 			array(
-				'label'   => __( 'Pagination Mode', 'iraniandubai-core' ),
-				'type'    => Controls_Manager::SELECT,
-				'default' => $defaults['pagination_mode'],
-				'options' => array(
+				'label'     => __( 'Pagination Mode', 'iraniandubai-core' ),
+				'type'      => Controls_Manager::SELECT,
+				'default'   => $defaults['pagination_mode'],
+				'condition' => array(
+					'pagination' => 'yes',
+				),
+				'options'   => array(
 					'pagination'      => __( 'Pagination', 'iraniandubai-core' ),
 					'load_more'       => __( 'Load More', 'iraniandubai-core' ),
 					'infinite_scroll' => __( 'Infinite Scroll', 'iraniandubai-core' ),
@@ -198,6 +213,206 @@ final class BlogGridWidget extends Widget_Base {
 				'type'    => Controls_Manager::SELECT,
 				'default' => '',
 				'options' => $this->get_category_options(),
+			)
+		);
+
+		$this->end_controls_section();
+	}
+
+	/**
+	 * Register style controls.
+	 *
+	 * @return void
+	 */
+	private function register_style_controls(): void {
+		$this->start_controls_section(
+			'grid_style_section',
+			array(
+				'label' => __( 'Blog Grid', 'iraniandubai-core' ),
+				'tab'   => Controls_Manager::TAB_STYLE,
+			)
+		);
+
+		$this->add_responsive_control(
+			'grid_gap',
+			array(
+				'label'      => __( 'Grid Gap', 'iraniandubai-core' ),
+				'type'       => Controls_Manager::SLIDER,
+				'size_units' => array( 'px' ),
+				'range'      => array(
+					'px' => array(
+						'min' => 0,
+						'max' => 100,
+					),
+				),
+				'selectors'  => array(
+					'{{WRAPPER}} .idb-blog .idb-blog__grid' => 'gap: {{SIZE}}{{UNIT}};',
+				),
+			)
+		);
+
+		$this->add_control(
+			'card_background',
+			array(
+				'label'     => __( 'Card Background', 'iraniandubai-core' ),
+				'type'      => Controls_Manager::COLOR,
+				'selectors' => array(
+					'{{WRAPPER}} .idb-blog .idb-blog-card' => 'background-color: {{VALUE}};',
+				),
+			)
+		);
+
+		$this->add_responsive_control(
+			'card_border_radius',
+			array(
+				'label'      => __( 'Card Border Radius', 'iraniandubai-core' ),
+				'type'       => Controls_Manager::DIMENSIONS,
+				'size_units' => array( 'px', '%' ),
+				'selectors'  => array(
+					'{{WRAPPER}} .idb-blog .idb-blog-card' => 'border-radius: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};',
+				),
+			)
+		);
+
+		$this->add_group_control(
+			Group_Control_Box_Shadow::get_type(),
+			array(
+				'name'     => 'card_shadow',
+				'label'    => __( 'Card Shadow', 'iraniandubai-core' ),
+				'selector' => '{{WRAPPER}} .idb-blog .idb-blog-card',
+			)
+		);
+
+		$this->add_responsive_control(
+			'card_padding',
+			array(
+				'label'      => __( 'Card Padding', 'iraniandubai-core' ),
+				'type'       => Controls_Manager::DIMENSIONS,
+				'size_units' => array( 'px', 'em', '%' ),
+				'selectors'  => array(
+					'{{WRAPPER}} .idb-blog .idb-blog-card__content' => 'padding: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};',
+				),
+			)
+		);
+
+		$this->add_responsive_control(
+			'image_height',
+			array(
+				'label'      => __( 'Image Height', 'iraniandubai-core' ),
+				'type'       => Controls_Manager::SLIDER,
+				'size_units' => array( 'px' ),
+				'range'      => array(
+					'px' => array(
+						'min' => 80,
+						'max' => 800,
+					),
+				),
+				'selectors'  => array(
+					'{{WRAPPER}} .idb-blog .idb-blog-card__media' => 'height: {{SIZE}}{{UNIT}}; aspect-ratio: auto;',
+				),
+			)
+		);
+
+		$this->add_responsive_control(
+			'image_border_radius',
+			array(
+				'label'      => __( 'Image Border Radius', 'iraniandubai-core' ),
+				'type'       => Controls_Manager::DIMENSIONS,
+				'size_units' => array( 'px', '%' ),
+				'selectors'  => array(
+					'{{WRAPPER}} .idb-blog .idb-blog-card__media, {{WRAPPER}} .idb-blog .idb-blog-card__image' => 'border-radius: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};',
+				),
+			)
+		);
+
+		$this->add_group_control(
+			Group_Control_Typography::get_type(),
+			array(
+				'name'     => 'title_typography',
+				'label'    => __( 'Title Typography', 'iraniandubai-core' ),
+				'selector' => '{{WRAPPER}} .idb-blog .idb-blog-card__title',
+			)
+		);
+
+		$this->add_control(
+			'title_color',
+			array(
+				'label'     => __( 'Title Color', 'iraniandubai-core' ),
+				'type'      => Controls_Manager::COLOR,
+				'selectors' => array(
+					'{{WRAPPER}} .idb-blog .idb-blog-card__title, {{WRAPPER}} .idb-blog .idb-blog-card__title a' => 'color: {{VALUE}};',
+				),
+			)
+		);
+
+		$this->add_group_control(
+			Group_Control_Typography::get_type(),
+			array(
+				'name'     => 'excerpt_typography',
+				'label'    => __( 'Excerpt Typography', 'iraniandubai-core' ),
+				'selector' => '{{WRAPPER}} .idb-blog .idb-blog-card__excerpt',
+			)
+		);
+
+		$this->add_control(
+			'excerpt_color',
+			array(
+				'label'     => __( 'Excerpt Color', 'iraniandubai-core' ),
+				'type'      => Controls_Manager::COLOR,
+				'selectors' => array(
+					'{{WRAPPER}} .idb-blog .idb-blog-card__excerpt' => 'color: {{VALUE}};',
+				),
+			)
+		);
+
+		$this->add_group_control(
+			Group_Control_Typography::get_type(),
+			array(
+				'name'     => 'meta_typography',
+				'label'    => __( 'Meta Typography', 'iraniandubai-core' ),
+				'selector' => '{{WRAPPER}} .idb-blog .idb-blog-card__meta, {{WRAPPER}} .idb-blog .idb-blog-card__date',
+			)
+		);
+
+		$this->add_control(
+			'meta_color',
+			array(
+				'label'     => __( 'Meta Color', 'iraniandubai-core' ),
+				'type'      => Controls_Manager::COLOR,
+				'selectors' => array(
+					'{{WRAPPER}} .idb-blog .idb-blog-card__meta, {{WRAPPER}} .idb-blog .idb-blog-card__meta a, {{WRAPPER}} .idb-blog .idb-blog-card__date' => 'color: {{VALUE}};',
+				),
+			)
+		);
+
+		$this->add_group_control(
+			Group_Control_Typography::get_type(),
+			array(
+				'name'     => 'button_typography',
+				'label'    => __( 'Button Typography', 'iraniandubai-core' ),
+				'selector' => '{{WRAPPER}} .idb-blog .idb-blog-card__button',
+			)
+		);
+
+		$this->add_control(
+			'button_text_color',
+			array(
+				'label'     => __( 'Button Text Color', 'iraniandubai-core' ),
+				'type'      => Controls_Manager::COLOR,
+				'selectors' => array(
+					'{{WRAPPER}} .idb-blog .idb-blog-card__button' => 'color: {{VALUE}};',
+				),
+			)
+		);
+
+		$this->add_control(
+			'button_background_color',
+			array(
+				'label'     => __( 'Button Background Color', 'iraniandubai-core' ),
+				'type'      => Controls_Manager::COLOR,
+				'selectors' => array(
+					'{{WRAPPER}} .idb-blog .idb-blog-card__button' => 'background-color: {{VALUE}};',
+				),
 			)
 		);
 
