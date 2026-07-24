@@ -9,6 +9,7 @@ namespace IDB\Elementor;
 
 use Elementor\Controls_Manager;
 use Elementor\Widget_Base;
+use IDB\Elementor\Contracts\WidgetInterface;
 use IDB\Frontend\BlogRenderer;
 
 if ( ! defined( 'ABSPATH' ) ) {
@@ -18,7 +19,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 /**
  * Elementor widget for the standalone LSOS Blog Hero section.
  */
-final class BlogHeroWidget extends Widget_Base {
+final class BlogHeroWidget extends Widget_Base implements WidgetInterface {
 	/**
 	 * Blog renderer.
 	 *

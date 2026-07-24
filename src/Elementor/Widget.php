@@ -11,6 +11,7 @@ use Elementor\Controls_Manager;
 use Elementor\Group_Control_Typography;
 use Elementor\Widget_Base;
 use IDB\Blog\Defaults;
+use IDB\Elementor\Contracts\WidgetInterface;
 use IDB\Frontend\BlogRenderer;
 
 if ( ! defined( 'ABSPATH' ) ) {
@@ -20,7 +21,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 /**
  * Elementor widget that renders the blog through BlogRenderer.
  */
-final class Widget extends Widget_Base {
+final class Widget extends Widget_Base implements WidgetInterface {
 	/**
 	 * Blog renderer.
 	 *

@@ -8,6 +8,7 @@
 namespace IDB\Elementor;
 
 use IDB\Core\ModuleInterface;
+use IDB\Elementor\Contracts\WidgetInterface;
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
@@ -38,9 +39,17 @@ final class Manager implements ModuleInterface {
 	 * @return void
 	 */
 	public function register_widgets( \Elementor\Widgets_Manager $widgets_manager ): void {
-		$widgets_manager->register( new Widget() );
-		$widgets_manager->register( new BlogHeroWidget() );
-		$widgets_manager->register( new BlogGridWidget() );
+		$widgets = array(
+			new Widget(),
+			new BlogHeroWidget(),
+			new BlogGridWidget(),
+		);
+
+		foreach ( $widgets as $widget ) {
+			if ( $widget instanceof WidgetInterface ) {
+				$widgets_manager->register( $widget );
+			}
+		}
 	}
 
 	/**

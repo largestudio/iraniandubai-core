@@ -19,7 +19,7 @@ The plugin uses a lightweight PSR-4 autoloader for the `IDB\` namespace and keep
 - `IDB\Admin` - WordPress admin menu and settings.
 - `IDB\Blog` - `[idb_blog]` shortcode registration.
 - `IDB\Frontend` - blog shortcode rendering.
-- `IDB\Elementor` - Elementor widget integration backed by the shared blog renderer.
+- `IDB\Elementor` - Elementor widget integration backed by the shared blog renderer, with an explicit registration contract for future widgets.
 
 No active theme files are modified.
 
